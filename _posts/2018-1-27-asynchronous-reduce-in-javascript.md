@@ -44,7 +44,7 @@ async function asyncReduce(array, handler, startingValue) {
 
 function createLinks(links) {
   return asyncReduce(
-    array,
+    links,
     async (resolvedLinks, link) => {
       const newResolvedLink = await createLink(link);
       return resolvedLinks.concat(newResolvedLink);
@@ -87,7 +87,7 @@ function asyncReduce(array, handler, startingValue) {
 
 function createLinks(links) {
   return asyncReduce(
-    array,
+    links,
     async (resolvedLinks, link) => {
       const newResolvedLink = await createLink(link);
       return resolvedLinks.concat(newResolvedLink);
