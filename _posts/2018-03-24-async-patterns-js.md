@@ -2,6 +2,7 @@
 layout: post
 title: Asynchronous Patterns in JavaScript
 keywords: javascript, asynchronous, async, waiting once, loading scripts, dynamic loading, loading libraries, mvar, waiting, promises, seva zaikov, bloomca
+tags: javascript async_javascript
 ---
 
 Sometimes you need to load something once, like a script, and you need to execute your code only _after_ loading it. For example, you have some magical library, but it weights around 1 MB, so you don't want to just load it, until you actually use it. One possible solution would be to use [code splitting](https://webpack.js.org/guides/code-splitting/), but let's assume it is not a viable solution (also this approach is good not only for scripts).
@@ -34,9 +35,9 @@ Fix is pretty small – we just need to use [once](https://lodash.com/docs/4.17.
 ```js
 // my own implementation, just to show how it works internally
 function once(fn) {
+  let res;
+  let invoked = false;
   return function(...args) {
-    let res;
-    let invoked = false;
 
     if (!invoked) {
       res = fn(...args);
