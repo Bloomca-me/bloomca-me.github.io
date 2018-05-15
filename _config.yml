@@ -1,5 +1,5 @@
 # General Jekyll Config
 highlighter: rouge
-url: http://bloomca-me.github.io
+url: https://blog.bloomca.me
 lsi: false
 exclude: [LICENSE, CNAME, README.md, .gitignore, Gemfile, Gemfile.lock]
