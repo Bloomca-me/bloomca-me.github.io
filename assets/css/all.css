@@ -510,3 +510,41 @@ ol {
   border-bottom: 1px solid #6e9bc5;
 }
 
+.newsletter {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.newsletter label {
+  font-weight: 300;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.newsletter input {
+  width: 250px;
+  border: 1px solid #ddd;
+  padding: 10px;
+  font: 400 14px Open Sans,sans-serif;
+  outline: none;
+  color: #333;
+  border-radius: 0;
+}
+
+.newsletter .button {
+  margin-bottom: 12px;
+  background: #999;
+  border: 0;
+  cursor: pointer;
+  color: #fff;
+  font: 700 12px/21px Open Sans,sans-serif;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 13px 25px;
+  width: auto;
+  transition: all .2s ease-in;
+}
+
+.newsletter .button:hover {
+  background: #70b1ef;
+}
