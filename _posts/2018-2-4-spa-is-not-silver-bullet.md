@@ -2,6 +2,7 @@
 layout: post
 title: Single Page Application Is Not a Silver Bullet
 keywords: javascript, SPA, application, react, angular, native application, server-side application, responsiveness
+excerpt: SPA is a tool – use it wisely. Recent trend is to use it everywhere, but is it worth it to be able to write your landing page using hottest JS framework?
 ---
 
 Single-page applications are everywhere. Even blogs, simple html pages (in the beginning something like [https://danluu.com/](https://danluu.com/)), have turned into big fat monsters – for example, [jlongster's blog](https://github.com/jlongster/blog) has 1206 stars at the moment of writing, and not because of the content (people usually subscribe to blogs rather than star the source): the only reason is that once he [implemented it using React & Redux](https://jlongster.com/The-Seasonal-Blog-Redux). What is the problem, though? He wants, he makes it, no questions here. The problem is that it is considered _normal_ to make blogs for reading so bloated – of course, there are some people who complain, but the general response is utterly positive. But who cares about blogs – the problem is that nowadays pretty often question is not "to SPA or not to SPA", rather "which client-side framework should we use for our SPA".
@@ -49,18 +50,23 @@ I have to say that we were modern enough, and in order to help SEO and mobile cl
 
 Let's take a look at actual sizes of the applications. Usually I am logged out, and I have my adblocker enabled.
 
-### Airbnb ([individual place page](https://www.airbnb.com/rooms/9089815))
+## Airbnb ([individual place page](https://www.airbnb.com/rooms/9089815))
 
 Bright engineering team, many articles about migration to React. Let's see how is it going, on the typical page of individual place:
 
-<img class="image" src="/assets/img/airbnb.jpg" />
+<p class="centred-image full-image">
+  <img class="image" src="/assets/img/airbnb.jpg" />
+  <em>A lot of files. Microservices in action...</em>
+</p>
 
 There are tons of files, and in total it makes it 1.3MB gzipped. Again, 1.3MB to show you a place – pictures and description. Of course, there is a lot of user interaction, but at the end of they day, as a user, I want to look at the place – also I can be logged out. Is it user-friendly? I don't know, but I'd be happy with static content to just explore what are requirements, to read description, etc.
 I am pretty sure that aggressive code-splitting allows them to ship features faster, but the price here is user's comfort and speed.
 
-### Twitter (regular feed of logged in user)
+## Twitter (regular feed of logged in user)
 
-<img class="image" src="/assets/img/twitter.jpg" />
+<p class="centred-image full-image">
+  <img class="image" src="/assets/img/twitter.jpg" />
+</p>
 
 Just 3 initial files, and 1 later (I guess lazy loading):
 - init file, 161KB
@@ -70,11 +76,13 @@ Just 3 initial files, and 1 later (I guess lazy loading):
 
 In total 475KB + 44.5KB for some lazy-loaded file. Much better than AirBnB, but still, a lot of stuff, just to show you feed. There is also a [mobile version](https://mobile.twitter.com), which feels much lighter, but the size is actually similar.
 
-### Medium ([Article about cost of JS](https://medium.com/dev-channel/the-cost-of-javascript-84009f51e99e))
+## Medium ([Article about cost of JS](https://medium.com/dev-channel/the-cost-of-javascript-84009f51e99e))
 
 Medium is a cool platform for blogs. So, essentially, it is an advanced place for texts, similar to one you are reading right now. Let's open an article, which I mentioned before, about cost of JS:
 
-<img class="image" src="/assets/img/medium.jpg" />
+<p class="centred-image full-image">
+  <img class="image" src="/assets/img/medium.jpg" />
+</p>
 
 Also 3 files:
 - main bundle, 337KB

@@ -3,6 +3,7 @@ layout: post
 title: Best Practices are not Always the Best
 description: sometimes best practices are not the best
 keywords: software development, best practices, KPI, metrics, OQR, innovation, Richard Hammings, agile processes, scrumbut, scrum but
+excerpt: Our development life is made of best practices – but sometimes they are not actually the best.
 ---
 
 We all follow best practices: we all look how successful companies do their business, how they structure their websites, how they organize their documentation. In case of software development, we peek which processes they use, how many spaces they use, which styleguide, which languages, frameworks and so on. It all makes perfect sense – we want to replicate success, we want to use technology which is popular and we can hire new people for, and we want to indicate that we also “belong to this group”.

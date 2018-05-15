@@ -3,6 +3,7 @@ layout: post
 title: Angular.js Guide for Seasoned Developers – part 2
 keywords: javascript, angular, angular.js, angular 1, angularjs, angular.js tutorial, angular.js for react developers, angular directive, digest cycle
 tags: javascript angular
+excerpt: This time we'll talk about directices, services and factories (and difference between them), and minification.
 ---
 
 This is the second part of the angular.js tutorial for seasoned developers. [In the first part](https://blog.bloomca.me/2018/04/15/angularjs-guide-for-seasoned-developers-part-1.html) we talked about basics, controllers and how digest cycle works in general – this time we'll focus on more basic building blocks – directives, factories and services, diving into more details.
@@ -26,7 +27,7 @@ If you open a dev console now, you should see that `compile` method was called o
 
 The next thing is to create a new scope for your directive – and we have several choices here; by default it will inherit current scope, like it works with controllers, but we can choose to create a completely isolated scope, or pass only selected properties. It is configured using `scope` property with the following values:
 
-```js
+{% highlight js linenos=table %}
 {
   scope: true, // default option, inherits parent's scope
   scope: {}, // no inheritance at all, our $scope won't contain any parent's properties
@@ -36,7 +37,7 @@ The next thing is to create a new scope for your directive – and we have sever
     isVisible: '<' // one-way data binding, property's name should also be `isVisible`
   }
 }
-```
+{% endhighlight %}
 
 After executing `compile`, if present, and creating a new scope with chosen inheritance, angular looks at the `controller`. It works exactly as you expect – function works the same way as described [in part one](https://blog.bloomca.me/2018/04/15/angularjs-guide-for-seasoned-developers-part-1.html#controllers): you can use `$scope` and assign properties directly on it, or you can use property `controllerAs` and assing properties on `this`. In order to use `controllerAs`, you need to provide this property with a string indicating how you want to refer to controller object.
 
@@ -61,13 +62,13 @@ Another exciting (yet confusing for some people) feature is transclusion (direct
 
 I will tell you immediately, that effectively there is no difference between them at all. Moreover, `angular.service` is defined in terms of `factory` inside, and in pseudocode we can write something like this:
 
-```js
+{% highlight js linenos=table %}
 angular.service = function(name, Constructor) {
   return angular.factory(name, function(..args) {
     return new Constructor(...args);
   });
 }
-```
+{% endhighlight %}
 
 As you can see, the only difference is that function for `service` is a constructor one, and for the `factory` just a plain function. That is it about them, and since `factory` is more flexible, I can recommend to use only it; but if your team preferres services, it is perfectly fine, just stick with one, since having more entities doing exactly the same is a little bit confusing (big problem for angular in general).
 

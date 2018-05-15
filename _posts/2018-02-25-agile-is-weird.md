@@ -2,6 +2,7 @@
 layout: post
 title: Agile is Weird
 keywords: agile, why agile is bad, software methodology, software development, agile manifesto, scrum, kanban, seva zaikov, bloomca
+excerpt: Agile took software development world by storm, but I still can't get my head around it.
 ---
 
 I think we are at the moment when agile methodology is a de-facto standard in software development (at least in the web development). A lot of people have questions to this approach, and I am one of them – I like to challenge ideas, so I'd like to reflect on my experience, analyzing what went well and what did not.

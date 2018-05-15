@@ -2,12 +2,13 @@
 layout: post
 title: How to Cancel Your Promise
 keywords: javascript, promise, cancel promises, seva zaikov, bloomca, ES2015, ES6, async/await, modern javascript, generators, iterators
+tags: javascript async_javascript
 ---
 
 In ES2015, new version of EcmaScript, standart of JavaScript, we got new asynchronous primitive [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise). It is a very powerful concept, which allows us to avoid notoriously famous [callback hell](http://callbackhell.com/).
 For instance, several async actions easily cause code like that:
 
-```js
+{% highlight js linenos=table %}
 function updateUser(cb) {
   fetchData(function(error, data) => {
     if (error) {
@@ -33,12 +34,12 @@ function updateUser(cb) {
     });
   });
 }
-```
+{% endhighlight %}
 
 As you can see, we nest several calls, and in case we want to change some calls order, or we want to make several calls in parallel, we will have hard time managing this code.
 With promises we can refactor it to much more readable version:
 
-```js
+{% highlight js linenos=table %}
 // callback is not needed anymore – we just attach `.then`
 // handler to result of this function
 function updateUser() {
@@ -47,7 +48,7 @@ function updateUser() {
     .then(updateUserAddress)
     .then(updateMarketingData);
 }
-```
+{% endhighlight %}
 
 Not only it is much more concise and readable, but it makes it very easy to switch order of calls, make some calls in parallel, or just remove unnecessary call (or add another add in the middle of the chain).
 
@@ -61,7 +62,7 @@ But, as soon it [was discovered](https://stackoverflow.com/questions/30233302/pr
 
 Let's look how we can implement cancellation using Bluebird in our example:
 
-```js
+{% highlight js linenos=table %}
 import Promise from 'Bluebird';
 
 function updateUser() {
@@ -96,7 +97,7 @@ function updateUser() {
 const promise = updateUser();
 // wait some time...
 promise.cancel(); // user will be updated any way
-```
+{% endhighlight %}
 
 As you can see, we added a lot to our previous clean example. Unfortunately, there is no other way, since we can't just stop a random promise chain from executing (if we want, we'll need to wrap it into another function), so we need to touch all function, wrapping into cancelling token aware executor.
 
@@ -104,7 +105,7 @@ As you can see, we added a lot to our previous clean example. Unfortunately, the
 
 Tecnique above is not really special about bluebird, it is more about interface – you can implement your own version of cancellation, at the cost of additional property/variable. Usually this approached is called `cancellationToken`, and in the essense, it is almost the same as the previous one, but instead of having this function on the `Promise.prototype.cancel`, we instantiate it in a different object – we can return an object with `cancel` property, or we can accept additional parameter, an object, where we will add a property.
 
-```js
+{% highlight js linenos=table %}
 function updateUser() {
   let resolve, reject, cancelled;
   const promise = new Promise((resolveFromPromise, rejectFromPromise) => {
@@ -139,7 +140,7 @@ function updateUser() {
 const { promise, cancel } = updateUser();
 // wait some time...
 cancel(); // user will be updated any way
-```
+{% endhighlight %}
 
 This is a little bit more verbose than a previous solution, but it does exactly the same, and in case you don't have Bluebird (or just don't want to use non-standard methods on promises), it is a viable solution. As you can see, we changed signature – now we return object instead of a promise, but in fact we can just pass a parameter to the function, an object, and attach `cancel` method on it (or monkey-patch instance of Promise, but it can create you problems later). If you have this requirement only in couple places, it is a good solution.
 
@@ -149,7 +150,7 @@ Generators are another feature of ES2015, but they are not that popular for some
 
 Generators deserve their own article, so I won't cover the basics, and just implement a function to execute generators, which will allow us to cancel our promises in a general (!) way without affecting our code.
 
-```js
+{% highlight js linenos=table %}
 // this is a core function which will run our async code
 // and provide cancellation method
 function runWithCancel(fn, ...args) {
@@ -200,12 +201,12 @@ function runWithCancel(fn, ...args) {
   
   return { promise, cancel };
 }
-```
+{% endhighlight %}
 
 This was a pretty big function, but it is basically it (except for checks, of course – this is a very naïve implementation) – code itself will remain exactly the same, we will literally get `cancel` function for free!
 Let's see how it will look like in our example:
 
-```js
+{% highlight js linenos=table %}
 // * means that it is a generator function
 // you can put * almost anywhere :)
 // this is very similar syntactically to async/await
@@ -224,7 +225,7 @@ const { promise, cancel } = runWithCancel(updateUser);
 
 // will do the trick
 cancel();
-```
+{% endhighlight %}
 
 As you can see, the interface remained the same, but now we have the option to cancel any generator-based functions during their execution for free, just wrapping into appropriate runner. The downside is consistency -- if it is just couple places in your codebase, then it will be really confusing for other people to discover that you are using all possible async approaches in a single codebase; it is yet another trade-off.
 
@@ -235,7 +236,7 @@ Generators are, I guess, the most extensible option, because you do literally ev
 In the version of [ES2017](https://tc39.github.io/ecma262/2017/#sec-async-function-definitions) async/await were adopted, and you can use them without any flags in Node.js starting from the [version 7.6](https://www.infoq.com/news/2017/02/node-76-async-await).
 Unfortunately, there is nothing to support cancellation, and since async functions return promise implicitly, we can't really affect it (attach a property, or return something else), only resolved/rejected values. It means that in order to make our function cancellable, we'll need to pass a token object, and wrap each call in our famous wrapper:
 
-```js
+{% highlight js linenos=table %}
 async function updateUser(token) {
   let cancelled = false;
 
@@ -275,7 +276,7 @@ const token = {};
 const promise = updateUser(token);
 // wait some time...
 token.cancel(); // user will be updated any way
-```
+{% endhighlight %}
 
 It is very similar solution, but because we don't reject directly in `cancel` method, it might confuse a reader. On the other side, it is a standard feature of the language now, it has very convenient syntax, it allows you to use results of previous calls in the following (so problem of promise chaining is solved here), and has very clear and intuitive errors handling syntax via `try/catch`. So if cancellation does not bother you (or you are fine to use this way to cancel something), then this feature is definitely a superior way to write async code in modern JavaScript.
 

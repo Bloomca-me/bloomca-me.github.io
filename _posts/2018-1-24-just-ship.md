@@ -2,6 +2,7 @@
 layout: post
 title: Just Ship
 keywords: blog, imposter syndrome, programming, seva zaikov, bloomca, jekyll, hugo, github pages, netlify, build product
+excerpt: "\"If a tree falls in a forest and no one is around to hear it, does it make a sound?\""
 ---
 
 Recently I attended a very interesting meetup about [static site generators](https://www.netlify.com/blog/2017/05/25/top-ten-static-site-generators-of-2017/) – tools, which are usually used to generate static websites; the classic example is blogging, though they are capable of much more: docs, portfolios, etc.

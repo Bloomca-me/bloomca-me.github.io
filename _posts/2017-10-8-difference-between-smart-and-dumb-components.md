@@ -2,12 +2,13 @@
 layout: post
 title: Difference between smart and dumb components in React
 keywords: javascript, react, redux, seva zaikov, bloomca, components, smart components, dumb components
+excerpt: React allows you to write components in different ways, and I'd like to describe my own approach to smart and dumb components – in a nutshell, don't be afraid to make too many of smart components.
 ---
 
 In early days of single-page applications, we used to hardcode a lot of stuff, and very often we ended up with a lot of chunks of code, which did not make a lot of sense outside of their page. In other words, very often code was tighly coupled. For instance, in Angular 1, default behaviour of creating new scope with parent scope as a prototype encouraged code, there we rely on this feature, and this made later reuse very hard.
 [React](https://reactjs.org/) popularized [component approach](https://reactjs.org/docs/components-and-props.html), which means that we incapsulate all logic into separate components, and then compose them in declarative way. So, using JSX, we will have something like:
 
-```js
+{% highlight js linenos=table %}
 const DescriptionSection = (
   <ShadowSection>
     <WelcomeMessage name={name} />
@@ -16,7 +17,7 @@ const DescriptionSection = (
     </Code>
   </ShadowSection>
 );
-```
+{% endhighlight %}
 
 The beauty of the solution above starts to appear when you have to move this component a lot, or remove some pieces from it (or move part of this component to another). Basically, all sorts of possible business changes, which we face all the time in our frontend applications -- you know, pace has never been so fast.
 
@@ -24,13 +25,13 @@ Also, because we need to somehow make these components flexible, we need to pass
 
 Flux and it's successors (Alt, Reflux, Nuclear, others, and finally Redux, which is a de-facto standard nowadays) popularized and made it very prominent, that state should be contained outside of the views; and developer decided how and where do we connect this external state to our application, and I will show you 3 different approaches:
 
-### Pass Everything Down
+## Pass Everything Down
 
 This is the most verbose way, but also the most explicit -- there is absolutely no magic, we just pass store object down the component tree, and each components render based on what data they need.
 
 One of the problems here is performance. VDOM approach is pretty fast by default, so until your application is big, you won't really notice it, but at some point you'll need to dig into it. [React's PureComponent](https://reactjs.org/docs/react-api.html#reactpurecomponent) won't help here, because we don't pass just granular updates, rather the whole state, and it means we will need to write our own [shouldComponentUpdate](https://reactjs.org/docs/optimizing-performance.html#shouldcomponentupdate-in-action) functions. For example, let's take a look at the `<WelcomeMessage>` component. Let's think that we greet a user there, so we need to pass the user down there, and `DescriptionSection` JSX will look like:
 
-```js
+{% highlight js linenos=table %}
 const DescriptionSection = (
   <ShadowSection>
     <WelcomeMessage store={this.props.store} />
@@ -39,11 +40,11 @@ const DescriptionSection = (
     </Code>
   </ShadowSection>
 );
-```
+{% endhighlight %}
 
 And welcome message itself might look like the following (with performance optimisiations applied):
 
-```js
+{% highlight js linenos=table %}
 import React, { Component } from 'react';
 import RPT from 'prop-types';
 
@@ -69,18 +70,18 @@ class WelcomeMessage extends Component {
     );
   }
 }
-```
+{% endhighlight %}
 
 This component is pretty simple, but with the growth of used props it will become more and more complicated to write these update functions. Also, passing store around is pretty tedious in the big projects, but it is definitely a viable solution for not so big applications.
 The biggest advantage is the simplicity -- there is no magic at all, no [context](https://reactjs.org/docs/context.html) used to store some variables in the instance of React's VDOM.
 
-### Build Presentation Components ("Containers")
+## Build Presentation Components ("Containers")
 
 This approach was popularized by [Dan Abramov's article](https://medium.com/@dan_abramov/smart-and-dumb-components-7ca2f9a7c7d0), where he says that some components are in charge of data, and some are just for the render. In the wild I can say it is interpreted in a way that only some components (usually router's top-level components) are allowed to get all needed data, fire requests for it, and then pass it down to all its child components.
 
 Important thing here is that "dumb" components are not allowed to know anything about the store, so `WelcomeMessage` from the previous example should not receive the whole state, rather just a `name` string. So, the component will look like the following:
 
-```js
+{% highlight js linenos=table %}
 import React, { PureComponent } from 'react';
 import RPT from 'prop-types';
 
@@ -98,7 +99,7 @@ export default class WelcomeMessage extends PureComponent {
     );
   }
 }
-```
+{% endhighlight %}
 
 It's true that the result component is more flexible -- instead of any knowledge about store implementation, we just pass `name` property explicitly, which helps us to render this component with arbitrary names.
 
@@ -108,14 +109,14 @@ The biggest problem in this case is the necessity to pass this parameter, so the
 
 The answer to this concern is that we don't necessarily want as little smart components as possible -- if there is a big chunk of reusable UI (let's say, calculator), don't be afraid to make this one a smart component as well -- it will make removing calculator from one page and adding it to another much simpler.  
 
-### (Almost) Everything is a Presentation Component
+## (Almost) Everything is a Presentation Component
 
 This is a very similar approach as it was shown in the previous section, but with applied advice from the end it to extreme. It means that as soon as we need some data from the global store, we have to access it by ourselves -- so, a lot of our components become presentational. Of course, basic UI elements, like buttons, loaders, tabs and so on will be "dumb" anyway -- it is very rare that we need to adjust their state to some global property; but all that need, should access the store by themselves.
 
 For instance, `<WelcomeMessage>` component from our code example should do exactly this -- instead of receiving store or the name, we will add [HOC -- Higher-Order Components](https://reactjs.org/docs/higher-order-components.html) to our class, which will add this property to props. It simplifies adding this component to any place, because the single thing we need to do -- just to add this line `<WelcomeMessage />`, and that is it! If we don't need it there anymore, we can safely remove this line and be sure that nothing should be changed in the current component!
 So, let's see how it will work in our `<WelcomeMessage>` component. I will assume that we use [Redux](https://github.com/reactjs/redux) and [React-redux](https://github.com/reactjs/react-redux) for accessing store.
 
-```js
+{% highlight js linenos=table %}
 import React, { PureComponent } from 'react';
 import RPT from 'prop-types';
 import { connect } from 'react-redux';
@@ -140,7 +141,7 @@ class WelcomeMessage extends PureComponent {
 }
 
 export default connect(mapStateToProps)(WelcomeMessage);
-```
+{% endhighlight %}
 
 I could use [reselect](https://github.com/reactjs/reselect) to make reusable selector functions, but for the sake of simplicity let's avoid it. Also, because I return a string primitive, PureComponent will work perfectly.
 
@@ -148,7 +149,7 @@ You might ask at this point, "but isn't it too inflexible to tie all these compo
 
 So, let's rewrite our previous component to these two new. I'll keep them in the same file, again, for the sake of simplicity.
 
-```js
+{% highlight js linenos=table %}
 import React, { PureComponent } from 'react';
 import RPT from 'prop-types';
 import { connect } from 'react-redux';
@@ -183,7 +184,7 @@ class WelcomeUserMessage extends PureComponent {
 }
 
 export default connect(mapStateToProps)(WelcomeUserMessage);
-```
+{% endhighlight %}
 
 This might be a little bit more verbose, but we still have this advantage of adding and removing components in a very easy manner, which might be a huge advantage, if you need to restructure your views pretty often.
 

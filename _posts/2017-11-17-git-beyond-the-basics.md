@@ -2,6 +2,7 @@
 layout: post
 title: Git Beyond the Basics
 keywords: git, git workflow, git branches, git rebase, seva zaikov, bloomca, git interactive rebase, git cherry-pick, git history, git history rewrite, software development, programming
+excerpt: I used git for a long time with 3 famous commands, and at some point encountered more sophisticated workflows, which I decided to document – git merge, git rebase, interactive git rebase and git cherry-pick.
 ---
 
 Git is a very powerful tool, but we usually use only couple of commands from it -- `git pull`, `git push`, `git checkout`, `git fetch` and couple more, but we are often intimidated by not so common operations. I would like to explain one step forward from the basics here -- what merging actually does, how to rebase, how to cherry-pick commits from another branch and how to clean your pull request. Most of these things rewrite the history, and might look scary because of that, but I hope this guide will help you to become more confident using git.
@@ -24,17 +25,17 @@ Because branches are just pointers to commits, it means that you can merge not w
 
 I'd explain here only the situation when you have your branch with new commits, and you want to merge it back to the master. So, if everything is alright and you have no conflicts with master, when you can just switch to the master and merge your original branch:
 
-```sh
+{% highlight sh linenos=table %}
 git checkout master
 # Switched to branch 'master'
 git merge feature/my-awesome-feature
 # Updating 49fa574..5ec9036
 # Fast-forward
-```
+{% endhighlight %}
 
 After that git will offer you to create a new commit with default merging message. If it is possible to fast-forward (so no other commits were introduced in the target branch), no new commit will be created (it is a default behaviour). However, you can enforce to create a merge commit anyway (it is a default behaviour of github, for instance), you just need to pass `--no-ff` argument.
 
-```sh
+{% highlight sh linenos=table %}
 git checkout master
 # Switched to branch 'master'
 git merge --no-ff feature/my-awesome-feature
@@ -49,11 +50,11 @@ Merge branch 'feature/my-awesome-feature'
 #
 # Lines starting with '#' will be ignored, and an empty message aborts
 # the commit.
-```
+{% endhighlight %}
 
 Also, because we introduce a new commit, it means that we can affect not only a commit message, but actual content of the commit. In order to do that, you have to add `--no-commit` flag, which will stage everything, but will not create a commit yet -- you can look around, run your code, change some files, and commit everything after it:
 
-```sh
+{% highlight sh linenos=table %}
 git checkout master
 # Switched to branch 'master'
 # you don't need --no-ff flag, if there are new commits in master
@@ -84,7 +85,7 @@ Merge branch 'feature/my-awesome-feature'
 # Changes to be committed:
 #       new file:   new-awesome-file
 #
-```
+{% endhighlight %}
 
 If you have a conflict, git will behave similarly to `--no-commit` option -- it will stage everything, mark all files where conflicts appear, and leave you in this state. You have to resolve all conflicts, stage these files, and commit it as a normal commit (message will be prefilled in your editor as well). Interesting that you can do it using both approaches -- you can merge target branch to your current branch and resolve all conflicts there, or do it in the target one. Since all changes are usually made using mechanism of [Pull Requests](https://help.github.com/articles/about-pull-requests/) on the service like Github or Bitbucket, the first approach is the most common. These services actually prohibit you to merge to the arget branch, until you resolve all conflicts!
 
@@ -94,7 +95,7 @@ If you have a conflict, git will behave similarly to `--no-commit` option -- it 
 
 Another useful flag while merging is a `--squash` option. It allows you to squash all commits from your branch to a single one, and in your target branch you will not receive any other commits at all. In practice it means that after you apply this command, you end up with all changes staged, but with not a single new commit -- after everything looks good, you commit a new regular commit, and it is the only one new commit which we add to the history:
 
-```sh
+{% highlight sh linenos=table %}
 git checkout master
 # Switched to branch 'master'
 git merge --squash feature/my-awesome-feature
@@ -130,7 +131,7 @@ Date:   Fri Nov 17 18:01:20 2017 +0100
 # Changes to be committed:
 #       modified:   email-service
 #       modified:   email-service.spec
-```
+{% endhighlight %}
 
 > prefilled message for commit will contain all other commit messages in the description, so you can find them later
 
@@ -143,7 +144,7 @@ Git stores all commits and branches (which are just pointers to commits) in a fo
 
 So far so good, that was pretty much basic stuff -- I think this is how majority of git users use it. So, typical workflow is something like:
 
-```sh
+{% highlight sh linenos=table %}
 git checkout -b feature/my-new-feature
 # Switched to a new branch 'feature/my-new-feature'
 
@@ -151,7 +152,7 @@ git add . # stage everything
 git commit -m "add possibility to automatically retry AJAX calls"
 git merge origin/master # merge with remote master if needed
 git push # push all changed, and merge it after code review and CI
-```
+{% endhighlight %}
 
 However, using this strategy we can end up with some commits which we don't necessarily want. For instance, we might want some functionality from the 3rd branch, and we merged it several times with our branch. It was merged to the master before ours, so our branch will merge to the master just fine, but these commits don't really give a lot of helpful information. Another type of commits which are common but not so helpful -- different variations of "fix", "fix after code review", "fix failing tests", where we apply some small changes which we forgot to fix our tests, linting or some improvements after code review. We can have several rounds of code review, depending on the size, and while we can just [amend new changes](https://git-scm.com/book/en/v2/Git-Tools-Rewriting-History#Changing-the-Last-Commit) into one commit of such type, but it might harden the review (people won't be able to see only the last commit), and we still will have one more commit (not mentioning that granularity of commits for the branch and for the master might be different).
 
@@ -165,14 +166,14 @@ The answer is rewriting history, or rebasing some of your commits. It makes sens
 
 One way to use rebase is to rebase target branch to your current one. Using this method, we'll put all commits which were added after we started our branch (e.g. several merged branches) in the history before our first commit, so our branch will look like we just started after all current commits in target branch and then added all our commits. It will mess up chronological order, but usually not very much, because long-term branches are not that common. In the CLI it will look like:
 
-```sh
+{% highlight sh linenos=table %}
 # we are in our feature/my-awesome-feature branch
 git rebase origin/master
-```
+{% endhighlight %}
 
 If there is no conflicts, this will be enough. However, if any conflicts, it will look like a little bit different from merging. So, what git does internally, it gets target's pointer and starts to apply our new commits one-by-one. Each time we encounter a conflict, we have to resolve it before applying new commit. So, workflow with several conflicts will look like:
 
-```sh
+{% highlight sh linenos=table %}
 # we are in our feature/my-awesome-feature branch
 git rebase origin/master
 # fix conflicts
@@ -184,13 +185,13 @@ git add ... # add all files with resolved conflicts
 git commit # commit message will be prefilled in the editor
 git rebase --continue
 # done
-```
+{% endhighlight %}
 
 In case you mess things up and want to start from the beginning again, no worries! Similar to merging, you can abort the process and return to initial state:
 
-```sh
+{% highlight sh linenos=table %}
 git rebase --abort
-```
+{% endhighlight %}
 
 It will revert everything to your original branch, before you started to rebase, so you can start over (or choose other strategy).
 
@@ -201,11 +202,11 @@ Rebasing applies all your commits one-by-one, and it changes the history in the 
 
 Removing involves too much hassle, so force push is a common approach:
 
-```sh
+{% highlight sh linenos=table %}
 git push --force origin feature/my-awesome-feature
 # or alternative syntax
 git push origin +feature/my-awesome-feature
-```
+{% endhighlight %}
 
 I personally like the latter form more, but they are absolutely equivalent, so it is just a personal preference.
 
@@ -220,15 +221,15 @@ In the previous section we covered how to rebase target branch, so all our commi
 
 We get into interactive rebase mode just adding `-i` flag, and we could do it in the previous chapter:
 
-```sh
+{% highlight sh linenos=table %}
 # we can rebase using local master, but then we
 # need to pull all changes first
 git rebase -i origin/master
-```
+{% endhighlight %}
 
 However, interactive rebase usually is used for changing only our branch, so I will explain how to do so using this task. Let's imagine we have our branch with 4 commits, which we want to combine together before merging into master. So, in order to start interactive rebase of our branch, we need to pick the first commit, which we want to remain untouched (the last one in target branch usually). We can provide a hash, but we can just use git's references:
 
-```sh
+{% highlight sh linenos=table %}
 git rebase -i HEAD~4 # get commit which is 4 commits
 # behind from the last in the current branch
 
@@ -261,16 +262,16 @@ pick ef5a6ae changes after code review
 # However, if you remove everything, the rebase will be aborted.
 #
 # Note that empty commits are commented out
-```
+{% endhighlight %}
 
 As you can see, git provides you a quick description to all possible options, and they are pretty self-explanatory. In the editor we need to replace `pick` with options we want to apply. You can use shorthand versions as well, with just one letter, there is no difference at all. So, let's work on our branch and change it:
 
-```sh
+{% highlight sh linenos=table %}
 reword 9dcb655 add support for deep links
 squash 7536a6b extend support for android integration
 edit 01e8299 fix failing tests
 fixup ef5a6ae changes after code review
-```
+{% endhighlight %}
 
 So, we blend second commit into the first one, but saving its messaging in description, and fourth commit into the third, throwing message away.
 
@@ -279,7 +280,7 @@ So, we blend second commit into the first one, but saving its messaging in descr
 However, we chose `edit` option for the third commit - it is a similar behaviour to `--no-commit` option for merging strategy: we stage all the changes, and when we commit, message will be prefilled, but we can play around and change something, if we want to.
 
 
-```sh
+{% highlight sh linenos=table %}
 git rebase -i HEAD~4 # start to rebase our branch
 # chose as on the picture
 # editor will be opened immediately to change first commit
@@ -293,7 +294,7 @@ git rebase --continue
 # Successfully rebased and updated refs/heads/master.
 
 # done!
-```
+{% endhighlight %}
 
 We rebased master to our branch, and now new transformed 6 commits in our branch to just 3, more meaningful and not so focused on implementation details. Now we can merge it to the master and have better history in the future, so somebody who will support it can say thanks to us!
 
@@ -311,9 +312,9 @@ Commit will have the same commit message, so if you want to change it, you can d
 
 This is not the most common operation, so people in general are not very keen on it, but in reality there is nothing to worry about. All you need just a hash of your commit, and that is it!
 
-```sh
+{% highlight sh linenos=table %}
 git cherry-pick a523xct # put your hash commit here
-```
+{% endhighlight %}
 
 That will do the trick, that simple! In case you have several commits, you can apply them one by one, or use [range of commits](https://stackoverflow.com/questions/1994463/how-to-cherry-pick-a-range-of-commits-and-merge-into-another-branch).
 

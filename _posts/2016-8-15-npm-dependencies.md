@@ -2,6 +2,7 @@
 layout: post
 title: Npm dependencies explained
 keywords: npm, dependencies, devDependencies, peerDependencies, difference, package.json, javascript
+excerpt: "NPM has many types of dependencies: normal, dev, optional, peer. Let's look what is the difference between all of them."
 ---
 
 ## Hidden complexity of npm's dependencies

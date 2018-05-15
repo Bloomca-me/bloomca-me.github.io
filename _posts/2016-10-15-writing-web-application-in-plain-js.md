@@ -2,13 +2,14 @@
 layout: post
 title: Creating web application in plain javascript
 keywords: vanilla.js, javascript, SPA, seva zaikov, bloomca, web application, frameworks, software development
+excerpt: Modern JS frameworks provide all sorts of start help, along with really high-level concepts out of the box. Let's try to re-create them to understand what stands behind each app.
 ---
 
 ## JS fatigue
 
 > any application that can be written in JavaScript, will eventually be written in JavaScript
 
-This quote is not a joke, the js community is growing in [the outstanding pace](http://alexandros.resin.io/npm-now-the-largest-module-repository/) (evil voices say that's because of publishing very interesting [repositories](https://www.npmjs.com/package/is-negative), but we all know that not only because of that), and people very often are frustrated. Requirements for modern applications are incredible, and for newbies it is too overwhelming. Also, there is quite vibrant and unstable tooling development process, which is very easy tracked by branches like `alpha-0.0.5rc` and so on. And react arise (and other frameworks happily joined soon) the whole problem of boilerplates – people create them trying to get the fanciest setup (the most popular react boilerplate has adapter for `graphql` server by default – which is complete nonsence, because 99.99% servers don't use it), and they still do, without even some understanding how the whole system works, and in case of problems they just start to copy & past snippets (so, we can say that `jQuery-plugin` approach moved to the configuration).
+This quote is not a joke, and JS community is growing in [the outstanding pace](http://alexandros.resin.io/npm-now-the-largest-module-repository/) (evil voices say that's because of publishing very interesting [repositories](https://www.npmjs.com/package/is-negative), but we all know that not only because of that), and people very often are frustrated. Requirements for modern applications are incredible, and for newbies it is too overwhelming. Also, there is quite vibrant and unstable tooling development process, which is very easy tracked by branches like `alpha-0.0.5rc` and so on. And react arise (and other frameworks happily joined soon) the whole problem of boilerplates – people create them trying to get the fanciest setup (the most popular react boilerplate has adapter for `graphql` server by default – which is complete nonsence, because 99.99% servers don't use it), and they still do, without even some understanding how the whole system works, and in case of problems they just start to copy & past snippets (so, we can say that `jQuery-plugin` approach moved to the configuration).
 
 ## Starting from scratch
 

@@ -2,6 +2,7 @@
 layout: post
 title: Server Side Rendering with Prefetch
 keywords: react.js, react, redux, server-side rendering, seva zaikov, bloomca, prefetch, javascript
+excerpt: Detailed explanation of what server side rendering is about, how is it done and how can you prefetch all the data, so you send fully formed page to the client.
 ---
 
 ## What is a server-side rendering
@@ -28,7 +29,7 @@ Do you need server-side rendering or not? If you need SEO, then it is definitely
 
 As I mentioned before, this area is still uncharted, so there is no real best practice. Boilerplates, if they provide any server-side rendering, usually go as far as just rendering your application without any prefetching (and without offering any ways to do so). So, you are basically on your own after you step into the server code part, which invokes something like `renderToString`. Starting from here, I'll assume we are talking about React and [react-router](https://github.com/ReactTraining/react-router) – while it is possible to achieve in, let's say, [vue](https://vuejs.org/v2/guide/ssr.html), I am more familiar with React, and also, approaches will be the same (as you know, any good idea in the front-end world will be immediately copied, as what happened with virtual DOM).
 
-### Attaching function to top-level components
+## Attaching function to top-level components
 
 So, at the moment of rendering, when we actually invoke `renderToString`, we know which component we are going to render, and this leads us to the first guess. If we know the component, why can't we just attach a function to resolve all the needed data? With the router, we know exactly which routes we are going to receive, so we can add the needed query functions to it. Moreover, this is an official recommendation on both [react-router](https://reacttraining.com/react-router/web/guigrdes/server-rendering/data-loading) and [vue](https://ssr.vuejs.org/en/data.html#server-data-fetching).
 
@@ -43,7 +44,7 @@ The sequence is as follows:
 
 I don't really want to provide any code, because react-router has changed it's API quite a bit, but a lot of projects still use an older version ([for example](https://github.com/erikras/react-redux-universal-hot-example/blob/master/src/server.js#L84)), but the idea should be clear.
 
-### Problems with this approach
+## Problems with this approach
 
 The biggest downside is the coupling – your top-level component should know too much – how to get all the needed data for this route, and while it makes sense in the beginning, as your application grows, it will become more and more complicated. Also, it is possible that some component will stop being rendered inside another component, but on the top-level, you will continue to fetch this data – it is possible that the person who will change this nested component, won't be aware of this exact prefetch.
 
@@ -51,7 +52,7 @@ Also, you will essentially duplicate your code – you will need to prefetch it 
 
 It is possible to work around those, though – basically, we can resolve other components inside these functions, and it makes problem of fetching unnecessary data much easier. Another problem arises, though – now we have to pass the correct props to these nested components, but it is a trade-off we have to make; and also, it won't solve the code duplication problem. But lack of any common solution to this problem shows that it is not that easy to generalize, and people stick with writing custom functions for specific routes.
 
-### Double rendering
+## Double rendering
 
 When we render our react application on the server, one lifecycle hook is invoked [componentWillMount](https://facebook.github.io/react/docs/react-component.html#componentwillmount) (or we can use `constructor`, what matters is that it is invoked on both the client and server).
 
@@ -62,7 +63,7 @@ The idea is the following: if we render our application first, without saving th
 The biggest drawback is because we don't specify all requests in a single place, we get them from these hooks, but only from components which were rendered, so if some components were not presented because of missing data, it means that they won't prefetch their data. In general, abstracting from any coupling, we don't know how many times we'd have to render our application before everything would be prefetched, but this is another trade-off we have to make (usually 1 dry render is enough, but it depends on your application).
 Double rendering (or triple), of course, is a drawback too, but it is just more CPU, and not some conceptual problem in our code, so I don't count it as a big problem.
 
-### Double rendering implementation
+## Double rendering implementation
 
 I am more experienced with this approach, and it can be generalized much better than the previous one. In my library, [redux-tiles](https://github.com/Bloomca/redux-tiles), I provide exactly this approach to do [prefetch for server-side rendering](https://github.com/Bloomca/redux-tiles#user-content-server-side-rendering). The main idea is that we would like to catch all asynchronous requests and then wait for all of them, and only after this render the final output. We can create some object to store requests, and then pass it to all the async actions, but it is pretty annoying, and also requires us to rewrite all the data layer part. In the react + redux application, we have two places where we can instantiate independent per-request objects: [context](https://facebook.github.io/react/docs/context.html) and [middleware](http://redux.js.org/docs/advanced/Middleware.html). The first approach will require us to pass this object to actions (and syntax to get context is not the most convenient), so we are ending up with just one possibility – middleware. Middleware in redux allows us to handle different dispatched action types – in [redux-tiles](https://github.com/Bloomca/redux-tiles#user-content-middleware) middleware handles returned functions. It passes object with promises, so asynchronous "tiles" (think about them as redux modules) keep their requests in it (and remove them after resolving), and it allows us to grab all the active promises and then wait for them.
 

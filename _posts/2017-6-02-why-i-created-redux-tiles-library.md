@@ -2,6 +2,7 @@
 layout: post
 title: Why I created Redux-Tiles library
 keywords: react.js, react, redux, redux-tiles, seva zaikov, bloomca, server-side rendering, prefetch, javascript
+excerpt: Redux is too verbose, and a lot of actions are definitely repetitive. There are a lot of approaches how to mitigate it using middleware, but I think in a typical app almost all concepts are unnecessary – you don't really have to know about constants, actions and reducers.
 ---
 
 Recently I published [Redux-tiles library](https://github.com/Bloomca/redux-tiles), which itself is a pretty small library intended to fight the verbosity of original style Redux. If you are just interested in code, feel free to take a look at [examples](https://github.com/Bloomca/redux-tiles/tree/master/examples), otherwise let's go slowly.
@@ -12,8 +13,10 @@ Redux itself is an implementation of Elm-style app architecture, where we store 
 
 Redux is a great library, but in it's raw state it actually often frustrates people (especially newcomers). It is pretty confusing in the beginning, and restrictions seem too strict. The core idea is that we have unidirectional data flow, and data itself can be changed only in one place (registered reducer for this part of the state), and therefore we can always trace (or simply recreate steps) how something was changed.
 
-The classical diagram looks like that:
-<img class="image" src="/assets/img/flux-diagram.png" />
+<p class="centred-image full-image">
+  <img class="image" src="/assets/img/flux-diagram.png" />
+  <em>The classical diagram looks something like that</em>
+</p>
 
  Initially it was presented on [React Europe 2015](https://www.youtube.com/watch?v=xsSnOQynTHs), and then it conquered the world (adaptions appeared in many languages). Nowadays it is a de-facto standard in React community, and even the creator (who was coincidentially hired by Facebook) tries to persuade people that [they might not need Redux](https://medium.com/@dan_abramov/you-might-not-need-redux-be46360cf367). Redux is heavily inspired by functional programming concepts, so some purists tried to put everything inside it, completely discarding local state.
 

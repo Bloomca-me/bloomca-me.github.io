@@ -2,6 +2,7 @@
 layout: post
 title: Business metrics for libraries
 keywords: javascript, libraries, frameworks, seva zaikov, bloomca, react, angular, clojurescript, elm, business, refactoring
+excerpt: JS fatigue makes it really hard to choose libraries and technologies wisely.
 ---
 
 # Exciting New World

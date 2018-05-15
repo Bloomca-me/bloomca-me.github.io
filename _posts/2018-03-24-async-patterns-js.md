@@ -3,6 +3,7 @@ layout: post
 title: Asynchronous Patterns in JavaScript
 keywords: javascript, asynchronous, async, waiting once, loading scripts, dynamic loading, loading libraries, mvar, waiting, promises, seva zaikov, bloomca
 tags: javascript async_javascript
+excerpt: JavaScript is asynchronous at its heart – let's see some patterns for loading libraries only once.
 ---
 
 Sometimes you need to load something once, like a script, and you need to execute your code only _after_ loading it. For example, you have some magical library, but it weights around 1 MB, so you don't want to just load it, until you actually use it. One possible solution would be to use [code splitting](https://webpack.js.org/guides/code-splitting/), but let's assume it is not a viable solution (also this approach is good not only for scripts).
@@ -11,7 +12,7 @@ Sometimes you need to load something once, like a script, and you need to execut
 
 So we write something like the following:
 
-```js
+{% highlight js linenos=table %}
 function loadLibrary() {
   return new Promise((resolve, reject) => {
     // create new script element, which will load our script
@@ -26,13 +27,13 @@ function loadLibrary() {
     document.body.appendChild(script);
   });
 }
-```
+{% endhighlight %}
 
 This code will be problematic, though, if we invoke this code somewhere else, like in 2 separate components, which both want to use this heavy library – we will download and execute this library again (and some libraries are not very happy about it). But we explicitly want to do it only once, so let's fix it.
 
 Fix is pretty small – we just need to use [once](https://lodash.com/docs/4.17.4#once):
 
-```js
+{% highlight js linenos=table %}
 // my own implementation, just to show how it works internally
 function once(fn) {
   let res;
@@ -51,13 +52,13 @@ function once(fn) {
 // if this function will be executed more than once, every time
 // after first call, we will get result of the initial call
 const loadLibraryOnce = once(loadLibrary);
-```
+{% endhighlight %}
 
 ## Disconnecting promise and loading
 
 Let's complicate our requirements a little bit – let's say we want to execute some code after loading our library, but this code _should not_ initiate library's loading. In other words, we want to react to the library's presence in the app: we can use some sort of event emitter, broadcasting event like `ourLibrary:loaded`, but sometimes you don't want to introduce this pattern just for one message, or you don't want to rely on strings.
 
-```js
+{% highlight js linenos=table %}
 let resolveLibraryPromise;
 let rejectLibraryPromise;
 
@@ -89,7 +90,7 @@ libraryPromise.then(() => {
   // but only after the library was loaded
   renderLibraryConsole();
 });
-```
+{% endhighlight %}
 
 Example of such a usage – let's say you want to render statistics of usage, but only after library was loaded. If library is not here, it means that there is nothing to show, but as soon as it was requested by any component, we'd like to display it, and such an approach will help us. Also, if we use code splitting, we'd have to create the same wrapper around it.
 
@@ -98,7 +99,7 @@ Example of such a usage – let's say you want to render statistics of usage, bu
 Our last improvement will be to drop a requirement to wait only once, and to allow replacement of resolved values (but we won't stream updated results, we will keep promise interface). Let's first write a naïve implementation, and later abstract it.
 Waiting for library multiple times does not make a lot of sense, so let's switch to loading user's object.
 
-```js
+{% highlight js linenos=table %}
 let user;
 let userExists = false;
 let promises = [];
@@ -146,13 +147,13 @@ function putUser(userObject) {
 function removeUser() {
   userExists = false;
 }
-```
+{% endhighlight %}
 
 You can see that the amount of code increased significantly – now we have to keep track of all places which want to read the next user's object, and we can't return the same promise, because it is not a singletone anymore!
 Let's see how we can use it:
 
 
-```js
+{% highlight js linenos=table %}
 function checkPermissions() {
   const user = await readUser();
 
@@ -166,7 +167,7 @@ function getApplication() {
   // after this line permissions will be resolved (in case they were called)
   putUser(application.user);
 }
-```
+{% endhighlight %}
 
 What is important here is that what we want in our checking permissions function is only the latest user object, but we don't control it's loading at all – we are sure that some other code will take care about it. Also, we do it only once, so it means that there is no subscribing functionality, and if you need it, think about using some sort of [streams](https://gist.github.com/staltz/868e7e9bc2a7b8c1f754).
 
@@ -176,7 +177,7 @@ Now, the last part is about abstracting code from above. This pattern resembles 
 
 Let's abstract the code from the previous chapter:
 
-```js
+{% highlight js linenos=table %}
 class MVar {
   constructor() {
     this.promises = [];
@@ -205,11 +206,11 @@ class MVar {
     this.valueExists = false;
   }
 }
-```
+{% endhighlight %}
 
 Code is much cleaner, right? Now, using this abstraction we can create our user's object reader:
 
-```js
+{% highlight js linenos=table %}
 const userMVar = new MVar();
 
 function checkPermissions() {
@@ -225,6 +226,6 @@ function getApplication() {
   // after this line permissions will be resolved (in case they were called)
   userMVar.put(application.user);
 }
-```
+{% endhighlight %}
 
 These patterns (especially in the end) are pretty hard to follow and not so intuitive, so I can recommend to use them only in case you really need these specific use-cases.

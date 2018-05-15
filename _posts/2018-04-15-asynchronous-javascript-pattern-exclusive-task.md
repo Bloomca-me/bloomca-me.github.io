@@ -3,6 +3,7 @@ layout: post
 title: "Asynchronous Javascript Patterns: Exclusive Task"
 keywords: javascript, javascript async patterns
 tags: javascript async_javascript
+excerpt: Declarative code comes with a flaw – you might easily pay with network overhead, calling same endpoint from several places. In this article I'll show how you can overcome it.
 ---
 
 > I have more articles about asynchronous javascript!
@@ -17,7 +18,7 @@ Now, let's imagine this token can be invalidated and we need to refresh it after
 
 Let's write some code, which assumes token is available and always valid, and if something is wrong, it just redirects to the login page:
 
-```js
+{% highlight js linenos=table %}
 function checkStatus(response) {
   if (response.status >= 200 && response.status < 300) {
     return response;
@@ -46,12 +47,12 @@ function get(url, params) {
     .then(checkStatus)
     .then(parseJSON);
 }
-```
+{% endhighlight %}
 
 Let's handle it now in naïve way – we assume that we receive custom `Token is invalid` message in status text, and our function `refreshToken()` will handle redirect to the login page if it is impossible without user input.
 The first step is to add one more condition into our `checkStatus`:
 
-```js
+{% highlight js linenos=table %}
 // we need to mark somehow that we want to request it again
 // we use [Symbol](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol)
 // to avoid any possible ambiguity and 
@@ -64,11 +65,11 @@ async function checkStatus(response) {
     return HAS_TO_CALL_REQUEST_AGAIN;
   } // ...
 }
-```
+{% endhighlight %}
 
 Now we need to modify our `get` function a little bit, so that we react to our Symbol value, which tells us we need to call this function again.
 
-```js
+{% highlight js linenos=table %}
 function get(url, params) {
   const paramsWithToken = {
     ...params,
@@ -88,11 +89,11 @@ function get(url, params) {
     })
     .then(parseJSON);
 }
-```
+{% endhighlight %}
 
 You can see an interesting effect of using a promise chain – inside our added code, after checking status, we can't just call the function again, because we'll fall through anyway, so we have to call already executed functions by ourselves (in our case, it is only `checkStatus`). We can workaround it using [async/await](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function):
 
-```js
+{% highlight js linenos=table %}
 async function get(url, params) {
   const paramsWithToken = {
     ...params,
@@ -110,7 +111,7 @@ async function get(url, params) {
 
   return parseJSON(response);
 }
-```
+{% endhighlight %}
 
 They both work the same, though, but `async/await` version is more flexible.
 Now we solved one part of the problem – in case of invalid token we'll try to refresh it first, and if it was successfull, we will call the same endpoint once again, so user won't notice anything.
@@ -119,7 +120,7 @@ However, now we can end up in a situation, where several simultaneous requests n
 
 Let's start with a default implementation, which does not take care of concurrency:
 
-```js
+{% highlight js linenos=table %}
 let token = null;
 async function refreshToken() {
   token = await fetchToken();
@@ -130,11 +131,11 @@ async function refreshToken() {
 function getToken() {
   return token;
 }
-```
+{% endhighlight %}
 
 Now let's refresh token only once, and if it is in progress, just return this promise. This will solve our problem of several concurrent requests:
 
-```js
+{% highlight js linenos=table %}
 let token = null;
 let tokenPromise = null;
 
@@ -150,13 +151,13 @@ async function refreshToken() {
 
   return token;
 }
-```
+{% endhighlight %}
 
 We are good at this point – the initial problem is solved, but what if we have other places where we can use the same strategy? Let's abstract this pattern:
 
 > This is an abstraction, which makes sense _only_ if you have a lot of places to use this pattern. As you saw, overhead is not that big, so if you have 1–2 places to use, feel free and just inline solution above
 
-```js
+{% highlight js linenos=table %}
 function createExclusiveTask(fn) {
   let promise = null;
 
@@ -182,7 +183,7 @@ function _refreshToken() {
 // now all calls to the refresh token will automatically return a promise
 // if it is in the progress
 const refreshToken = createExclusiveTask(refreshToken);
-```
+{% endhighlight %}
 
 This abstraction will allow you to write declarative code without thinking too much about network overhead – you can just request new token, user object, etc, and be sure that in case of several concurrent requests it won't make additional calls.
 

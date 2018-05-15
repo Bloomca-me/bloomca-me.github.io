@@ -2,6 +2,7 @@
 layout: post
 title: State of the art in CSS
 keywords: css, javascript, stylesheet, seva zaikov, bloomca, css-in-js, css-modules, webpack, react, sass, less, styled-components, aphrodite, glamour, BEM, Atomic CSS, SMACSS, OOCSS, Radium
+excerpt: "CSS is at a very interesting point: old school CSS, preprocessors, CSS in JS, inline CSS – all these approaches coexist and actively compete. Let's take a look at what they all can offer, through lenses of history."
 ---
 
 > This article touches on the latest trends in CSS for big web applications (usually [SPA](https://en.wikipedia.org/wiki/Single-page_application)). I don't try to question whether it is the right or wrong direction, rather try to list all of them.
@@ -88,8 +89,10 @@ The first approach is very obvious, they literally use all styles from javascrip
 - looking into the developer console, it is incredibly hard to understand which component is here
 - we transfer more bytes -- because everything is inlined, we have to repeat ourselves in many places
 
-<img class="image" src="/assets/img/inline_styles.jpg" />
-Example of project with inline styles
+<p class="centred-image full-image">
+  <img class="image" src="/assets/img/inline_styles.jpg" />
+  <em>Example of project with inline styles</em>
+</p>
 
 The other approach is to use DOM specification about [StyleSheets](https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleSheet). It works almost the same from the interface part, 
 

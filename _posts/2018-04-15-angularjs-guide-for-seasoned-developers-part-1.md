@@ -2,6 +2,7 @@
 layout: post
 title: Angular.js Guide for Seasoned Developers – part 1
 keywords: javascript, angular, angular.js, angular 1, angularjs, angular.js tutorial, angular.js for react developers, angular directive, digest cycle
+excerpt: Yes, it is about AngularJS, old dying monster. Most of the tutorials in the wild focus on obsolete versions and target beginners – here I'll describe my learnings how AngularJS works.
 ---
 
 This is a high-level overview of Angular.js (or 1st version of Angular), targeted to experienced JavaScript developers, after which you'll understand the concepts. It is not a replacement for [angular guides](https://docs.angularjs.org/guide) and [api reference](https://docs.angularjs.org/api), and it explans only main concepts –  my goal was to explain how Angular.js works so that you'll know what to expect from this framework. I assume you worked with Angular for a little bit, or at least skimmed over their docs.
@@ -71,7 +72,9 @@ We added some interactivity here – namely, number of clicks, and the ability t
 
 When angular sets up your controller in `ng-controller` or custom directive, after instantiating controller it will also set up all needed listeners. But how does it know that something has changed? In fact, it does not. Angular has its own [digesting cycle](https://docs.angularjs.org/guide/scope#integration-with-the-browser-event-loop), which shows the whole execution model of the framework. So, watchers just react to changes after special signal, called `$scope.$digest()` or `$scope.$apply()` (don't worry too much about difference between them – you can read [this SO answer](https://stackoverflow.com/a/35826935/3218277) now or later about it) – you can invoke it manually, actually, and sometimes you have to! You have to do so if angular has no idea what are you doing, and usually it means you don't use any angular directive/service at all.
 
-<img class="image" src="/assets/img/angularjs-digest-cycle.png" />
+<p class="centred-image full-image">
+  <img class="image" src="/assets/img/angularjs-digest-cycle.png" />
+</p>
 
 For example, if we have a controller, which defines a variable, and then change it after some timeout, nothing will happen:
 

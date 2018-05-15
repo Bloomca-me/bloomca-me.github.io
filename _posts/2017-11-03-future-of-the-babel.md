@@ -2,6 +2,7 @@
 layout: post
 title: Future of the Babel.js
 keywords: javascript, babel, react, JSX, seva zaikov, bloomca, ES2015, ES6, modern javascript, transpilation, future of javascript, ECMAScript, TC39
+excerpt: Babel.js is here for a long time and won't go away – partially because of JSX, partially because of old browsers, and partially because of sweet new features.
 ---
 
 JavaScript was originally added to make possible simple animations and effects. Since the beginning, browsers added a lot of APIs (the biggest breakthrough was introducing of [AJAX](https://developer.mozilla.org/en-US/docs/AJAX)), and nowadays we can make pretty powerful applications, which will be cross-platform out of the box. The latter advantage is so huge, that nowadays almost everybody targets web, since standartisation worked out pretty well, and websites look and behave exactly the same, no matter which platform you use.
@@ -30,7 +31,7 @@ Another reason is actual new features. If something is already in stage-3 (so it
 Also, as I mentioned, many people already have babel in their building pipeline just for some plugins, like JSX, so adding these new features is usually 1 new dependency and a line in `.babelrc` file.
 It also does not make a lot of sense to workaround things which will be solved soon on the language level. For instance, [object destructuring](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment) is a pretty popular example, as less verbose [Object.assign](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign) functionality, and omitting some properties:
 
-```js
+{% highlight js linenos=table %}
 // with object desctructuring we have nice and clean solution
 // to separate properties we want to use and to pass further
 const { title, size, ...otherProps } = props;
@@ -58,7 +59,7 @@ const newState = Object.assign({}, state, {
 
 // in this example it took even less space, but the code is less
 // readable and cluttered with Object.assign
-```
+{% endhighlight %}
 
 ## Using New Appealing Features
 

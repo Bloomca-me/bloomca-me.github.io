@@ -2,6 +2,7 @@
 layout: post
 title: My experience from real-world webapps tasks for job interviews
 keywords: javascript, interviews, seva zaikov, bloomca, software developer interview, job interview, react.js, node.js
+excerpt: Homework assignments are a popular way to test candidates – they can take their time, and show the best in relaxing atmosphere. But, if you are a little bit busy, it might backfire, since you literally can't invest that much of the time, and comments are not always suitable to explain all extension points.
 ---
 
 Recently, I was in the process of finding a new job, and because my main expertise is javascript, all my applications required a test in frontend (usually in React.js) and Node.js. They are not very different -- some basic API in node.js and (sometimes) data crunching, and for frontend it is some small "real-world application". I will focus mostly on the latter, because in my applications we paid more attention to it.

@@ -2,6 +2,8 @@
 layout: post
 title: How to Use Generators in JavaScript
 keywords: javascript, generators, promise, seva zaikov, bloomca, async, cancel promise, pause, resume
+tags: javascript async_javascript
+excerpt: "Generators are definitely not very popular in JS community, losing to more clear `async/await`. However, you can accomplish many things with generators: cancellation, batching, pause/resume, etc; with little effort."
 ---
 
 Generators are a very powerful concept, but it is not used that often (see the twitter poll!). Why is it so? They are more sophisticated than async/await, not so easy to debug (mostly back to the old days), and people in general like async/await more, even despite the fact that we can achieve similar experience in a really easy way.
@@ -20,7 +22,7 @@ While there is nothing bad in showing them immediately, sometimes it might not b
 
 > Please note that this example is about performance optimization, and you should not do it until you actually hit this issue – premature optimization [is evil](https://en.wikipedia.org/wiki/Program_optimization#When_to_optimize)!
 
-```js
+{% highlight js linenos=table %}
 // our original synchronous function
 function renderItems(items) {
   for (item of items) {
@@ -38,12 +40,12 @@ function* renderItems(items) {
     yield renderItem(item);
   }
 }
-```
+{% endhighlight %}
 
 There is no difference, huh? Well, the difference here is that now we can run this function differently, without changing the source code – so it means we can actually tweak it very easily. In fact, as I've mentioned before, there is no need to actually wait, we can execute it synchronously.
 So, let's tweak our code. What about adding 4ms (one tick in JS VM) sleep after each yield? Well, given that it is 10,000 items, it will take 4 seconds – which is not bad, but let's say I want to render it in 2 seconds. The obvious answer is to chunk them by two, and all of the sudden the same solution using promises will start to become more complicated – we'll have to pass another parameter: number of elements in the chunk. With our runner, we still need to pass this number, but the beauty is that we don't have to affect our `renderItems` function at all!
 
-```js
+{% highlight js linenos=table %}
 function runWithBatch(chunk, fn, ...args) {
   const gen = fn(...args);
   let num = 0;
@@ -86,7 +88,7 @@ batchRunner(2, function*() {
     yield renderItem(item);
   }
 });
-```
+{% endhighlight %}
 
 As you can see, we can easily change the number of items in the chunk, throw this runner away and switch back to usual synchronous execution – and all of this won't affect our `renderItems` function.
 
@@ -94,7 +96,7 @@ As you can see, we can easily change the number of items in the chunk, throw thi
 
 Let's go to more traditional stuff – cancelling. I've touched on it extensively in my article about [promises cancellation in general](http://blog.bloomca.me/2017/12/04/how-to-cancel-your-promise.html), so I'll reuse code from it:
 
-```js
+{% highlight js linenos=table %}
 function runWithCancel(fn, ...args) {
   const gen = fn(...args);
   let cancelled, cancel;
@@ -141,7 +143,7 @@ function runWithCancel(fn, ...args) {
   
   return { promise, cancel };
 }
-```
+{% endhighlight %}
 
 The best part here is that we cancel all requests which were not able to execute yet (as well as we can pass something like [AbortController](https://developer.mozilla.org/en-US/docs/Web/API/AbortController) to our runner, so it can even cancel the current request!), and we did not change even one line in our business logic!
 
@@ -149,7 +151,7 @@ The best part here is that we cancel all requests which were not able to execute
 
 Another special requirement might be pause/resume functionality. Why would you want it? Imagine we render our 10,000 rows, and it is pretty slow, and we want to give the power to pause/resume rendering to the user, so they can stop all background work and read already downloaded content. Let's do that:
 
-```js
+{% highlight js linenos=table %}
 // our function is still the same!
 function* renderItems() {
   for (item of items) {
@@ -217,7 +219,7 @@ function runWithPause(genFn, ...args) {
     promise
   };
 }
-```
+{% endhighlight %}
 
 Calling this runner will give us an object with pause/resume buttons, and all of that for free, using our previous function! So, if you have a lot of "heavy" request chains, which can take several seconds, and you want to give your user power to pause and resume them, feel free to implement this runner in your codebase.
 
@@ -226,7 +228,7 @@ Calling this runner will give us an object with pause/resume buttons, and all of
 We had this mysterious `onRejected` call, which is our main target for this section. If we use normal async/await or promise chaining, we fall through our try/catch, and it is really hard to recover to our point of failure without adding a lot of logic. The usual scenario is if we need to somehow handle the error (retry the call, for example), we just do it inside the internal promise, which will handle itself and call the same endpoint again.
 However, as usual, it is not a generic solution – and the sad part is, that even generators can't help us here. We hit the limitation of generators here – while we can control the execution flow, we cannot move around our generator function's body; so we cannot return one step back and re-execute our command again. One possible solution is to use [command pattern](https://en.wikipedia.org/wiki/Command_pattern), which (unfortunately) dictates us the structure of everything we yield – it should be all the info we need to execute this command, this way we will be able to execute it again. So, our function will be changed to:
 
-```js
+{% highlight js linenos=table %}
 function* renderItems() {
   for (item of items) {
     // we had to pass everything:
@@ -234,12 +236,12 @@ function* renderItems() {
     yield [renderItem, null, item];
   }
 }
-```
+{% endhighlight %}
 
 As you can see, it makes it very unclear what is going on – so, maybe it would be better to write some sort of `wrapWithRetry` function, which will check what is the type of error in the `catch` handler, and try again.
 However, we still can do something without affecting our function. For example, we can decide on a strategy about ignoring errors – in async/await we'd have to wrap each call in try/catch, or add empty `.catch(() => {})` part. With generators we can just write a runner which will ignore all errors.
 
-```js
+{% highlight js linenos=table %}
 function runWithIgnore(fn, ...args) {
   const gen = fn(...args);
   return new Promise((resolve, promiseReject) => {
@@ -278,7 +280,7 @@ function runWithIgnore(fn, ...args) {
     }
   });
 }
-```
+{% endhighlight %}
 
 ## Note About async/await
 
