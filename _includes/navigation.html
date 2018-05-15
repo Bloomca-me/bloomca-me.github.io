@@ -1,0 +1,30 @@
+<div class="navigation">
+  {% if page.layout == 'post' or page.url == '/' %}
+    <a href="/" class="active">
+  {% else %}
+    <a href="/">
+  {% endif %}
+    articles
+  </a>
+  <!-- {% if page.url == '/projects' or page.url == '/projects.html' %}
+  <a href="/projects" class="active">
+  {% else %}
+    <a href="/projects">
+  {% endif %}
+    projects
+  </a>
+  {% if page.url == '/moocs' or page.url == '/moocs.html' %}
+  <a href="/moocs" class="active">
+  {% else %}
+    <a href="/moocs">
+  {% endif %}
+    moocs
+  </a> -->
+  {% if page.url == '/about' or page.url == '/about.html' %}
+    <a href="/about" class="active">
+  {% else %}
+    <a href="/about">
+  {% endif %}
+    about
+  </a>
+</div>

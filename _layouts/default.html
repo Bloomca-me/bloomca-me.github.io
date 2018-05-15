@@ -13,7 +13,7 @@
   <meta name="keywords" content="{{ page.keywords }}">
   <link rel="canonical" href="{{ site.url }}{{ page.url | replace:'index.html','' }}" />
 
-  <link href="//fonts.googleapis.com/css?family=Open+Sans:600,800" rel="stylesheet" type="text/css">
+  <link href="http://fonts.googleapis.com/css?family=Lora:400,400italic,700,700italic|PT+Sans+Caption:700,400|Source+Sans+Pro:400|Raleway:300" rel="stylesheet" type="text/css">
   <link rel="shortcut icon" href="/favicon.png">
   <link rel="alternate" type="application/atom+xml" title="{{ site.data.theme.name }}" href="{{site.url}}/atom.xml" />
 
@@ -21,26 +21,26 @@
   <meta name="twitter:site" content="@blooomca">
   <meta name="twitter:title" content="{{ page.title }}">
   <meta name="twitter:description" content="Blog about programming">
-  <meta name="twitter:image" content="{{ http://www.gravatar.com/avatar/{{ site.data.theme.social.gravatar }}?s=200">
+  <meta name="twitter:image" content="http://www.gravatar.com/avatar/{{ site.data.theme.social.gravatar }}?s=200">
 
   <link rel="stylesheet" href="/assets/css/all.css">
   <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha256-k2/8zcNbxVIh5mnQ52A0r3a6jAgMGxFJFE2707UxGCk= sha512-ZV9KawG2Legkwp3nAlxLIVFudTauWuBpC10uEafMHYL0Sarrz5A7G79kXh5+5+woxQ5HM559XX2UZjMJ36Wplg==" crossorigin="anonymous">
 </head>
 <body>
-  <div class="container">
-    <div class="four columns sidebar">
-      {% include sidebar.html %}
-    </div>
-
-    <div class="eleven columns content">
-      {{ content }}
-
-      <div class="footer">
-        {% include footer.html %}
-      </div>
-    </div>
+  <div>
+    {% include navigation.html %}
+  </div>
+  {% if page.url == '/about' or page.url == '/about.html' %}
+  <div class="content-wrapper wide">
+  {% else %}
+    <div class="content-wrapper">
+  {% endif %}
+    {{ content }}
+  </div>
+  <div class="footer">
+    {% include footer.html %}
   </div>
 
-{% include analytics.html %}
+  {% include analytics.html %}
 </body>
 </html>
