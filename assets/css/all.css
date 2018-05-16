@@ -548,3 +548,7 @@ ol {
 .newsletter .button:hover {
   background: #70b1ef;
 }
+
+strong {
+  font-weight: 700;
+}
