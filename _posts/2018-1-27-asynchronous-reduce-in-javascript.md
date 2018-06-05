@@ -112,7 +112,7 @@ Okay, but what about good old ES5? Maybe you don't use [babel](https://babeljs.i
 function asyncReduce(array, handler, startingValue) {
   // we are using normal reduce, but instead of immediate execution
   // of handlers, we postpone it until promise will be resolved
-  array.reduce(
+  return array.reduce(
     function (promise, value) {
       return promise.then((acc) => {
         return Promise.resolve(handler(acc, value));
