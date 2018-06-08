@@ -4,13 +4,15 @@ title: Node.js Guide for Frontend Developers
 keywords: javascript, node.js, nodejs, nodejs guide, tutorial, seva zaikov, bloomca, ES2015, ES6, async/await, modern javascript
 ---
 
-I won't focus on the language here – Node.js uses V8, so it is the same interpreter as in Google Chrome, which you probably know about (however, it is possible to run on different VM, see [node-chakracore](https://github.com/nodejs/node-chakracore)).
+We deal with Node.js pretty often nowadays, even if you are just a frontend developer – npm scripts, webpack configuration, gulp tasks, programmatic run of bundlers or test runners. Even though you don't really need deep understanding for that sort of tasks, it might be confusing sometimes, and cause you write something in a very weird way just because of missing some key concept of Node.js. Familiarity with Node can also allow you to automate some things you do manually, feeling more confident looking into server-side code and write more complicated scripts.
 
-## Node version
+> This guide is focused on frontend developers – people who know JavaScript, but are not very proficient with Node yet. I won't focus on the language here – Node.js uses V8, so it is the same interpreter as in Google Chrome, which you probably know about (however, it is possible to run on different VM, see [node-chakracore](https://github.com/nodejs/node-chakracore)).
+
+## Node Version
 
 The most schocking difference after client-side code is the fact that you decide on your runtime, and you can be absolutely sure in supported features – you choose which version you are going to use, depending on your requirements and available servers.
 
-Node.js has a public [release schedule](https://github.com/nodejs/Release#release-schedule), which tells us that odd versions don't have long-term support, 
+Node.js has a public [release schedule](https://github.com/nodejs/Release#release-schedule), which tells us that odd versions don't have long-term support,
 
 Node.js is used extensively in modern frontend toolchain – it is hard to imagine modern project which does not include any processing using node tools, so you might be already familiar with [nvm](https://github.com/creationix/nvm) (node version manager), which allows you to have several node versions at the project simultaneously. The reason for such a tool is that different project very often are written using different Node version, and you don't want to constantly keep them in sync, you just want to preserve environment in which they were written and tested.
 Such tools exist for many other languages, like [virtualenv](https://virtualenv.pypa.io/en/stable/) for Python, [rbenv](https://github.com/rbenv/rbenv) for Ruby and so on.
@@ -25,7 +27,7 @@ There is also no need for webpack or browserify, and therefore we don't have a t
 
 Also, because we don't ship this code anywhere, there is no need to minify it – one step less: you just use your code as is! Feels really weird.
 
-## Callback style
+## Callback Style
 
 Historically, asynchronous functions in Node.js accepted callbacks with a signature `(err, data)`, where first argument represented an error – if it was `null`, all is good, otherwise you have to handle the error.
 For example, let's read a file:
@@ -84,11 +86,124 @@ You still can encounter a lot of oldschool Node.js code with callbacks, and it i
 
 ## Event Loop
 
-Event loop is almost the same, but it is
+Event loop is almost the same as in the browser, but a little bit extended. However, since this topic is a little bit more advanced, I will cover it fully, not only the differences (I will highlight them though, so you know which part is Node.js-specific).
 
-process.nextTick()
+<p class="centred-image full-image">
+  <img class="image" src="/assets/img/flux-diagram.png" />
+  <em>This is how event loop in Node.js works</em>
+</p>
 
-setImmediate()
+JavaScript is built with asynchronous behaviour in mind, and therefore very often we don't execute everything right there. Things which can be executed not in direct order:
+- [microtasks]()
+  - For example, immediately resolved promises, like [Promise.resolve](). It means that this code will execute in the _same_ event loop iteration, but after all synchronous code.
+- [process.nextTick]()
+  - This is Node.js specific thing, it does not exist in any browser. It behaves like a microtask, but with a priority, which means that it will be executed right after all synchronous code, even if other microtasks were introduced before. Naming is unfortunate, since it is not really correct.
+- [setImmediate]()
+  - While it does exist in [some browsers](), it did not reach consistent behaviour across all of them, so you should be very careful using it in the browser. It will execute code in the _next_ event loop iteration, but with a priority – so even some timers are registered, this callback will be executed first.
+- [setTimeout]()/[setInterval]()
+  - Timers behave the same way both in Node and browser. One important thing about timers is that delay we put there is not a guaranteed time after which our callback will be executed. What it means – Node.js will execute this callback after this time _as soon_ as main execution cycle finished all operations (including microtasks) _and_ there are no other timers with higher priority.
+
+Let's take a look at the example with all mentioned things:
+
+> I'll put a correct output from script's execution further, but if you want to, try to go through it on yourself (be a "JavaScript interpreter"):
+
+{% highlight js linenos=table %}
+console.log('beginning of the program');
+
+const promise = new Promise(resolve => {
+  // function, passed to the Promise constructor
+  // is executed synchronously!
+  console.log('I am in the promise function!');
+  resolve('resolved message');
+});
+
+promise.then(() => {
+  console.log('I am in the first resolved promise');
+}).then(() => {
+  console.log('I am in the second resolved promise');
+});
+
+process.nextTick(() => {
+  console.log('I am in the process next tick now');
+});
+
+setTimeout(() => {
+  console.log('I am in the callback from setTimeout with 0ms delay');
+}, 0);
+
+setImmediate(() => {
+  console.log('I am from setImmediate callback');
+});
+{% endhighlight %}
+
+The correct execution order is the following:
+
+{% highlight sh linenos=table %}
+> node event-loop.js
+beginning of the program
+I am in the promise function!
+I am in the process next tick now
+I am in the first resolved promise
+I am in the second resolved promise
+I am from setImmediate callback
+I am in the callback from setTimeout with 0ms delay
+{% endhighlight %}
+
+## Event Emitters
+
+A lot of core modules in Node.js emit or receive different events. Node.js has an implementation of [EventEmitter](), which is a [publish-subscribe pattern](I am from setImmediate callback). This is a very similar to browser DOM events with a little bit different syntax, and the easiest thing we can do to understand it fully is to actually implement it on our own:
+
+{% highlight js linenos=table %}
+class EventEmitter {
+  constructor() {
+    this.events = {};
+  }
+  checkExistence(event) {
+    if (!this.events[event]) {
+      this.events[event] = [];
+    }
+  }
+  on(event, cb) {
+    this.checkExistence(event);
+
+    this.events[event].push(cb);
+  }
+  off(event, cb) {
+    this.checkExistence(event);
+
+    this.events[event] = this.events[event].filter(
+      registeredCallback => registeredCallback !== cb
+    );
+  }
+  emit(event, ...args) {
+    this.checkExistence(event);
+
+    this.events[event].forEach(cb => cb(...args));
+  }
+}
+{% endhighlight %}
+
+This is all the basic code we need! It allows you to subscribe to events, unsubscribe later, and emit different events. For example, [response object](), [request object](), [stream]() – they all actually extend EventEmitter!
+
+## Streams
+
+> Streams are the most underappreciated feature of Node.js (Domenic Tarr)
+
+Streams allow you to process data in chunks, not just as a whole object. To understand why do we need them, let me show you a simple example – let's say we want to
+
+## Module System
+
+Node.js uses [commonjs modules](https://nodejs.org/docs/latest/api/modules.html). Probably you already used it – every time you use `require` some module inside your webpack configuration, you actually use commonjs modules; every time you declare `module.exports` you use it as well – however, you might also seen something like `exports.some = {}`, without `module`, and in this section we'll see why is it so.
+
+First of all, I'll talk about commonjs modules, with regular `.js` extensions, not about `.esm` (ECMAScript modules), which allow you to use `import/export` syntax. Also, what is important to understand, webpack and browserify (and other bundling tools) use their own require, so please don't be confused – we won't touch them here, just be aware that it is slightly different.
+
+So, from where do we get these "global" objects like `module`, `require` and `exports`? Actually, Node.js runtime adds them – instead of just executing given javascript file, it actually wraps it in the function with all these variables:
+
+{% highlight js linenos=table %}
+function (require, module, exports) {
+  // your code
+}
+{% endhighlight %}
 
 ## Environment Variables
 
@@ -114,6 +229,39 @@ const CONFIG = {
 }
 {% endhighlight %}
 
-## Module System
+## Putting Everything Together
 
-Node.js uses [commonjs modules](https://nodejs.org/docs/latest/api/modules.html). Probably you already used it – for example, if you defined a webpack configuration file, you actually used 
+In this example we will create a simple http server, which will return a file named as provided url string after `/`. In case file does not exist, we will return `404 Not Found` error, and in case user tries to cheat and use relative or nested path, we send him `403` error.
+
+{% highlight js linenos=table %}
+const { createServer} = require('http');
+const fs = require('fs');
+
+const server = createServer((req, res) => {
+  if (req.pathname.startsWith('.')) {
+    res.status = 403;
+    res.send('Relative paths are not allowed');
+  } else if (req.pathname.includes('/')) {
+    res.status = 403;
+    res.send('Nested paths are not allowed');
+  } else {
+    const fileStream = fs.createReadStream(req.pathname);
+
+    res.pipe(fileStream);
+
+    res.on('error', (e) => {
+      if ()
+    });
+  }
+});
+
+server.listen(8080, () => {
+  console.log('application is listening at port 8080');
+});
+{% endhighlight %}
+
+## Conclusion
+
+In this guide we covered a lot of fundamental Node.js principles. We did not dive into specific APIs, and we definitely missed some parts, but this guide should be a good starting point to feel confident while editing existing or creating new scripts – you are now able to understand errors, which interfaces built-in modules use, and what to expect from typical Node.js objects.
+
+Next time we'll cover web servers using Node.js in depth, how to write a CLI application, and how to use Node.js for small scripts. Stay tuned!
