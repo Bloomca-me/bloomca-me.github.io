@@ -89,25 +89,33 @@ You still can encounter a lot of oldschool Node.js code with callbacks, and it i
 Event loop is almost the same as in the browser, but a little bit extended. However, since this topic is a little bit more advanced, I will cover it fully, not only the differences (I will highlight them though, so you know which part is Node.js-specific).
 
 <p class="centred-image full-image">
-  <img class="image" src="/assets/img/flux-diagram.png" />
-  <em>This is how event loop in Node.js works</em>
+  <img class="image" src="/assets/img/event_loop.jpg" />
+  <em>Event loop in Node.js</em>
 </p>
 
 JavaScript is built with asynchronous behaviour in mind, and therefore very often we don't execute everything right there. Things which can be executed not in direct order:
-- [microtasks]()
-  - For example, immediately resolved promises, like [Promise.resolve](). It means that this code will execute in the _same_ event loop iteration, but after all synchronous code.
-- [process.nextTick]()
-  - This is Node.js specific thing, it does not exist in any browser. It behaves like a microtask, but with a priority, which means that it will be executed right after all synchronous code, even if other microtasks were introduced before. Naming is unfortunate, since it is not really correct.
-- [setImmediate]()
-  - While it does exist in [some browsers](), it did not reach consistent behaviour across all of them, so you should be very careful using it in the browser. It will execute code in the _next_ event loop iteration, but with a priority – so even some timers are registered, this callback will be executed first.
-- [setTimeout]()/[setInterval]()
-  - Timers behave the same way both in Node and browser. One important thing about timers is that delay we put there is not a guaranteed time after which our callback will be executed. What it means – Node.js will execute this callback after this time _as soon_ as main execution cycle finished all operations (including microtasks) _and_ there are no other timers with higher priority.
+- [microtasks](https://jakearchibald.com/2015/tasks-microtasks-queues-and-schedules/)
+
+For example, immediately resolved promises, like [Promise.resolve](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/resolve). It means that this code will execute in the _same_ event loop iteration, but after all synchronous code.
+
+- [process.nextTick](https://nodejs.org/api/process.html#process_process_nexttick_callback_args)
+
+This is Node.js specific thing, it does not exist in any browser. It behaves like a microtask, but with a priority, which means that it will be executed right after all synchronous code, even if other microtasks were introduced before – this is dangerous. Naming is unfortunate, since it is not really correct.
+
+- [setImmediate](https://nodejs.org/api/timers.html#timers_setimmediate_callback_args)
+
+While it does exist in [some browsers](https://developer.mozilla.org/en-US/docs/Web/API/Window/setImmediate#Browser_compatibility), it did not reach consistent behaviour across all of them, so you should be very careful using it in the browser. It is similar to `setTimeout(0)` code, but sometimes will take precedence over it.
+
+- [setTimeout](https://nodejs.org/api/timers.html#timers_settimeout_callback_delay_args)/[setInterval](https://nodejs.org/api/timers.html#timers_setinterval_callback_delay_args)
+
+Timers behave the same way both in Node and browser. One important thing about timers is that delay we put there is not a guaranteed time after which our callback will be executed. What it means – Node.js will execute this callback after this time _as soon_ as main execution cycle finished all operations (including microtasks) _and_ there are no other timers with higher priority.
 
 Let's take a look at the example with all mentioned things:
 
 > I'll put a correct output from script's execution further, but if you want to, try to go through it on yourself (be a "JavaScript interpreter"):
 
 {% highlight js linenos=table %}
+const fs = require('fs');
 console.log('beginning of the program');
 
 const promise = new Promise(resolve => {
@@ -125,6 +133,17 @@ promise.then(() => {
 
 process.nextTick(() => {
   console.log('I am in the process next tick now');
+});
+
+fs.readFile('index.html', () => {
+  console.log('==================');
+  setTimeout(() => {
+    console.log('I am in the callback from setTimeout with 0ms delay');
+  }, 0);
+
+  setImmediate(() => {
+    console.log('I am from setImmediate callback');
+  });
 });
 
 setTimeout(() => {
@@ -145,13 +164,18 @@ I am in the promise function!
 I am in the process next tick now
 I am in the first resolved promise
 I am in the second resolved promise
+I am in the callback from setTimeout with 0ms delay
+I am from setImmediate callback
+==================
 I am from setImmediate callback
 I am in the callback from setTimeout with 0ms delay
 {% endhighlight %}
 
+You can read more about event loop and process.nextTick in [official Node.js docs](https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/#event-loop-explained).
+
 ## Event Emitters
 
-A lot of core modules in Node.js emit or receive different events. Node.js has an implementation of [EventEmitter](), which is a [publish-subscribe pattern](I am from setImmediate callback). This is a very similar to browser DOM events with a little bit different syntax, and the easiest thing we can do to understand it fully is to actually implement it on our own:
+A lot of core modules in Node.js emit or receive different events. Node.js has an implementation of [EventEmitter](https://nodejs.org/api/events.html#events_class_eventemitter), which is a [publish-subscribe pattern](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern). This is a very similar to browser DOM events with a little bit different syntax, and the easiest thing we can do to understand it fully is to actually implement it on our own:
 
 {% highlight js linenos=table %}
 class EventEmitter {
