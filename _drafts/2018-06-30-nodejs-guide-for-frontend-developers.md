@@ -1,31 +1,43 @@
 ---
 layout: post
 title: Node.js Guide for Frontend Developers
-keywords: javascript, node.js, nodejs, nodejs guide, tutorial, seva zaikov, bloomca, ES2015, ES6, async/await, modern javascript
+keywords: javascript, node.js, nodejs, nodejs guide, tutorial, nodejs guide for frontend developers, nodejs introduction, node.js explanation, streams, event loop, commonjs tutorial, seva zaikov, bloomca, ES2015, ES6, async/await, modern javascript
 ---
 
-We deal with Node.js pretty often nowadays, even if you are just a frontend developer – npm scripts, webpack configuration, gulp tasks, programmatic run of bundlers or test runners. Even though you don't really need deep understanding for that sort of tasks, it might be confusing sometimes, and cause you write something in a very weird way just because of missing some key concept of Node.js. Familiarity with Node can also allow you to automate some things you do manually, feeling more confident looking into server-side code and write more complicated scripts.
+> This guide is focused on frontend developers – people who know JavaScript, but are not very proficient with Node yet. I won't focus on the language here – Node.js uses V8, so it is the same interpreter as in Google Chrome, which you probably know about (however, it is possible to run on different VMs, see [node-chakracore](https://github.com/nodejs/node-chakracore)).
 
-> This guide is focused on frontend developers – people who know JavaScript, but are not very proficient with Node yet. I won't focus on the language here – Node.js uses V8, so it is the same interpreter as in Google Chrome, which you probably know about (however, it is possible to run on different VM, see [node-chakracore](https://github.com/nodejs/node-chakracore)).
+## Table of Contents
+
+- [Node Version](#node-version)
+- [No Babel is Needed](#no-babel-is-needed)
+- [Callback Style](#callback-style)
+- [Event Loop](#event-loop)
+- [Event Emitters](#event-emitters)
+- [Streams](#streams)
+- [Module System](#module-system)
+- [Environment Variables](#environment-variables)
+- [Putting Everything Together](#putting-everything-together)
+
+We deal with Node.js pretty often nowadays, even if you are a frontend developer – [npm scripts](https://docs.npmjs.com/misc/scripts), webpack configuration, gulp tasks, programmatic run of [bundlers](https://webpack.js.org/api/node/) or [test runners](https://karma-runner.github.io/2.0/dev/public-api.html). Even though you don't really need deep understanding for that sort of tasks, it might be confusing sometimes, and cause you to write something in a very weird way just because of missing some key concept of Node.js. Familiarity with Node can also allow you to automate some things you do manually, feeling more confident looking into server-side code and writing more complicated scripts.
 
 ## Node Version
 
 The most schocking difference after client-side code is the fact that you decide on your runtime, and you can be absolutely sure in supported features – you choose which version you are going to use, depending on your requirements and available servers.
 
-Node.js has a public [release schedule](https://github.com/nodejs/Release#release-schedule), which tells us that odd versions don't have long-term support,
+Node.js has a public [release schedule](https://github.com/nodejs/Release#release-schedule), which tells us that odd versions don't have long-term support, and that current LTS (long-term support) version will be active developed until April 2019, and then maintained with critical updates until December 31, 2019. New versions are being actively developed, and they bring a lot of new features, along with security updates and performance improvements, which might be a good reason to follow current active version. However, nobody really forces you, and if you don't want to do that – there is nothing wrong to use an old version, and to avoid updates until it is a good moment for you.
 
 Node.js is used extensively in modern frontend toolchain – it is hard to imagine modern project which does not include any processing using node tools, so you might be already familiar with [nvm](https://github.com/creationix/nvm) (node version manager), which allows you to have several node versions at the project simultaneously. The reason for such a tool is that different project very often are written using different Node version, and you don't want to constantly keep them in sync, you just want to preserve environment in which they were written and tested.
 Such tools exist for many other languages, like [virtualenv](https://virtualenv.pypa.io/en/stable/) for Python, [rbenv](https://github.com/rbenv/rbenv) for Ruby and so on.
 
-## No Babel
+## No Babel is Needed
 
-Because you are free to choose any Node.js version, there is a big chance that you can use LTS (Long term supported) version, which is [8.11.2](https://nodejs.org/en/) at the moment of writing, which supports [almost everything](https://node.green/) – all 2015 ECMAScript spec, except for [tail recursion](https://en.wikipedia.org/wiki/Tail_call).
+Because you are free to choose any Node.js version, there is a big chance that you can use LTS (Long term supported) version, which is [8.11.3](https://nodejs.org/en/) at the moment of writing, which supports [almost everything](https://node.green/) – all 2015 ECMAScript spec, except for [tail recursion](https://en.wikipedia.org/wiki/Tail_call).
 
-It means that there is no need for Babel, unless you are stuck with old version of Node.js, or can't live without some bleeding edge transformation. In practice, it is not that crucial, so your running code is the same as you write it, without any transpiling – gift we already forgot on the client-side.
+It means that there is no need for Babel, unless you are stuck with old version of Node.js, need [JSX transformation](https://babeljs.io/docs/en/babel-plugin-transform-react-jsx), or can't live without some [bleeding edge transformation](https://github.com/tc39/proposal-pipeline-operator). In practice, it is not that crucial, so your running code is the same as you write it, without any transpiling – gift we already forgot on the client-side.
 
 There is also no need for webpack or browserify, and therefore we don't have a tool to reload our code – in case you develop something like a web server, you can use [nodemon](https://github.com/remy/nodemon) to reload your application after filechanges.
 
-Also, because we don't ship this code anywhere, there is no need to minify it – one step less: you just use your code as is! Feels really weird.
+And because we don't ship this code anywhere, there is no need to minify it – one step less: you just use your code as is! Feels really weird.
 
 ## Callback Style
 
@@ -39,6 +51,7 @@ fs.readFile('myFile.js', (err, file) => {
   if (err) {
     console.error('There was an error reading file :(');
     // process is a global object in Node
+    // https://nodejs.org/api/process.html#process_process_exit_code
     process.exit(1);
   }
 
@@ -100,7 +113,7 @@ For example, immediately resolved promises, like [Promise.resolve](https://devel
 
 - [process.nextTick](https://nodejs.org/api/process.html#process_process_nexttick_callback_args)
 
-This is Node.js specific thing, it does not exist in any browser. It behaves like a microtask, but with a priority, which means that it will be executed right after all synchronous code, even if other microtasks were introduced before – this is dangerous. Naming is unfortunate, since it is not really correct.
+This is a Node.js specific thing, it does not exist in any browser. It behaves like a microtask, but with a priority, which means that it will be executed right after all synchronous code, even if other microtasks were introduced before – this is dangerous. Naming is unfortunate, since it is not really correct, but because of [compatibility reasons](https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/#process-nexttick-vs-setimmediate) it probably will remain the same.
 
 - [setImmediate](https://nodejs.org/api/timers.html#timers_setimmediate_callback_args)
 
@@ -187,6 +200,17 @@ class EventEmitter {
       this.events[event] = [];
     }
   }
+  once(event, cb) {
+    this.checkExistence(event);
+
+    const cbWithRemove = (...args) => {
+      cb(...args);
+
+      this.off(event, cbWithRemove);
+    };
+
+    this.events[event].push(cbWithRemove);
+  }
   on(event, cb) {
     this.checkExistence(event);
 
@@ -207,13 +231,107 @@ class EventEmitter {
 }
 {% endhighlight %}
 
-This is all the basic code we need! It allows you to subscribe to events, unsubscribe later, and emit different events. For example, [response object](), [request object](), [stream]() – they all actually extend EventEmitter!
+Because it is such a simple concept, it is implemented in a lot of npm packages: [1](https://www.npmjs.com/package/event-emitter), [2](https://www.npmjs.com/package/events), [3](https://www.npmjs.com/package/eventemitter3), and [many others](https://www.npmjs.com/search?q=event+emitter) – so, if you want to use the same event emitter in the browser, feel free to use them.
+
+This is all the basic code we need! It allows you to subscribe to events, unsubscribe later, and emit different events. For example, [response object](https://nodejs.org/api/http.html#http_class_http_serverresponse), [request object](https://nodejs.org/api/http.html#http_class_http_incomingmessage), [stream](https://nodejs.org/api/stream.html) – they all actually extend or implement EventEmitter!
 
 ## Streams
 
-> Streams are the most underappreciated feature of Node.js (Domenic Tarr)
+<blockquote class="highlight-paragraph pull-in">
+  <p>“Streams are Node's best and most misunderstood idea.”</p>
+  <cite>
+    Dominic Tarr
+  </cite>
+</blockquote>
 
-Streams allow you to process data in chunks, not just as a whole object. To understand why do we need them, let me show you a simple example – let's say we want to
+Streams allow you to process data in chunks, not just as a whole object. To understand why do we need them, let me show you a simple example – let's say we want to return to a user a requested file of arbitrary size. Our code might look like this:
+
+{% highlight js linenos=table %}
+function (req, res) {
+  const filename = req.query;
+  fs.readFile(filename, (err, data) => {
+    if (err) {
+      res.status = 500;
+      res.send('Something went wrong');
+    }
+
+    res.send(data);
+  }); 
+}
+{% endhighlight %}
+
+This code will work, especially locally, but it _might_ fail. See the issue?
+We can have problems here in case file is too big – when we read a file, we put everything into memory, and if we don't have enough resources, this won't work. This also won't work in case we have a lot of concurrent requests – we have to keep `data` object in memory until we sent everything.
+
+However, we don't really need this file at all – we just return it from file system, and we don't look inside the content by ourselves, so we can read some part, return it immediately, free our memory, and repeat the whole thing again until we are done. This is a description of streams in a nutshell – we have a mechanism to receive data in chunks, and _we_ decide what to do with this data. For example, we can do exactly the same:
+
+{% highlight js linenos=table %}
+function (req, res) {
+  const filename = req.query;
+  const filestream = fs.createReadStream(filename, { encoding: 'utf-8' });
+
+  let result = '';
+
+  filestream.on('data', chunk => {
+    result += data;
+  });
+
+  readableStream.on('end', () => {
+    res.send(result);
+  });
+
+  // if file does not exist, error callback will be called
+  readableStream.on('error', () => {
+    res.status = 500;
+    res.send('Something went wrong');
+  });
+}
+{% endhighlight %}
+
+Here we create a stream to read from the file – this stream implements [EventEmitter](https://nodejs.org/api/events.html#events_class_eventemitter) class, and on `data` event we receive next chunk, and on `end` we get a signal that stream ended and full file was read. This implementation works the same as before – we wait for reading the whole file, and then return it in the response. Also, it has the same problem: we keep the whole file in our memory before sending it back. We can solve this problem if we know that response object implements a [writable stream](https://nodejs.org/api/http.html#http_class_http_serverresponse) itself, and we can write information into that stream without keeping it in our memory:
+
+{% highlight js linenos=table %}
+function (req, res) {
+  const filename = req.query;
+  const filestream = fs.createReadStream(filename, { encoding: 'utf-8' });
+
+  filestream.on('data', chunk => {
+    res.write(chunk);
+  });
+
+  readableStream.on('end', () => {
+    res.end();
+  });
+
+  // if file does not exist, error callback will be called
+  readableStream.on('error', () => {
+    res.status = 500;
+    res.send('Something went wrong');
+  });
+}
+{% endhighlight %}
+
+> Response object implements a [writable stream](https://nodejs.org/api/stream.html#stream_class_stream_writable), and [fs.createReadStream](https://nodejs.org/api/fs.html#fs_fs_createreadstream_path_options) creates a [readable stream](https://nodejs.org/api/stream.html#stream_readable_streams), and there are also [duplex and transform streams](https://nodejs.org/api/stream.html#stream_duplex_and_transform_streams). Difference between them and how they exactly work is out of the scope of this tutorial, but it is good to know about their existence
+
+Now we don't need `result` variable anymore, we just write read chunks into response immediately, and we don't keep it in our memory! It means that we can read even big files, and we don't have to worry about a lot of parallel requests – since we don't keep files in our memory, we won't get out of it.
+However, there is one problem – in our solution we read from one stream (filesystem reading from a file) and write it into another (network request), and these two things have [different latencies](https://gist.github.com/jboner/2841832). By different I mean _really_ different, and after some time our response stream will be overwhelmed, since it is much slower. This problem is a description of [backpressure](https://nodejs.org/en/docs/guides/backpressuring-in-streams/), and Node has a solution for it: each readable stream has a [pipe method](https://nodejs.org/api/stream.html#stream_readable_pipe_destination_options), which redirects all data into given stream respecting its load: if it is busy, it will [pause](https://nodejs.org/api/stream.html#stream_readable_pause) original stream, and [resume](https://nodejs.org/api/stream.html#stream_readable_resume) it. Using this method, we can simplify our code to:
+
+{% highlight js linenos=table %}
+function (req, res) {
+  const filename = req.query;
+  const filestream = fs.createReadStream(filename, { encoding: 'utf-8' });
+
+  filestream.pipe(res);
+
+  // if file does not exist, error callback will be called
+  readableStream.on('error', () => {
+    res.status = 500;
+    res.send('Something went wrong');
+  });
+}
+{% endhighlight %}
+
+> Streams changed several times during Node's history, so be extra careful while reading old manuals, and try to compare with official documentation!
 
 ## Module System
 
@@ -221,13 +339,70 @@ Node.js uses [commonjs modules](https://nodejs.org/docs/latest/api/modules.html)
 
 First of all, I'll talk about commonjs modules, with regular `.js` extensions, not about `.esm` (ECMAScript modules), which allow you to use `import/export` syntax. Also, what is important to understand, webpack and browserify (and other bundling tools) use their own require, so please don't be confused – we won't touch them here, just be aware that it is slightly different.
 
-So, from where do we get these "global" objects like `module`, `require` and `exports`? Actually, Node.js runtime adds them – instead of just executing given javascript file, it actually wraps it in the function with all these variables:
+So, from where do we get these "global" objects like `module`, `require` and `exports`? Actually, Node.js runtime adds them – instead of just executing given javascript file, it [actually wraps](https://nodejs.org/api/modules.html#modules_the_module_wrapper) it in the function with all these variables:
 
 {% highlight js linenos=table %}
-function (require, module, exports) {
-  // your code
+function (exports, require, module, __filename, __dirname) {
+  // your module
 }
 {% endhighlight %}
+
+You can see this wrapper by executing the following snippet in your command-line:
+
+{% highlight sh linenos=table %}
+node -e "console.log(require('module').wrapper)"
+{% endhighlight %}
+
+These are variables injected into your module and available as "global" ones, even though they are not really global. I highly recommend you to look into them, especially into `module` variable – you can just call `console.log(module)` in a javascript file: try to compare results when you print from the "main" file, and then from a required one.
+
+----
+
+Next, let's look into `exports` object – we will have a small example showing some caveats related to it:
+
+{% highlight js linenos=table %}
+exports.name = 'our name'; // this works
+
+exports = { name: 'our name' }; // this doesn't work
+
+module.exports = { name: 'our name' }; // this works!
+{% endhighlight %}
+
+Example above might get you puzzled – why is it so? The answer is in the nature of `exports` object – it is just an argument passed to a function, so in case we assign a new object to it, we just rewrite this variable, and old reference is gone. It is not fully gone, though – `module.exports` is the same object, so they are actually the same reference to a single object:
+
+{% highlight js linenos=table %}
+module.exports === exports; // true
+{% endhighlight %}
+
+----
+
+The last part is `require` – it is a function which takes a module name and returns the `exports` object of this module. How does it exactly resolve a module? There is a pretty straightforward rule:
+
+- check core modules with provided name
+- if path begins with `./` or `../`, try to resolve a file
+- if there was no file found, try to find a directory with `index.js` file in it
+- if path does not begin with `./` or `../`, go to the `node_modules/` and check folder/file there:
+  - in the folder where we run script
+  - one level above, until we reach `/node_modules`
+
+There are other libraries, and you can also provide your path to look in by specifying variable [NODE_PATH](https://nodejs.org/api/modules.html#modules_loading_from_the_global_folders), which might be useful. If you want to see exact order in which `node_modules` are being resolved, just print `module` object in your script and look for `paths` variable – for me it prints the following:
+
+{% highlight sh linenos=table %}
+➜ tmp node test.js
+Module {
+  id: '.',
+  exports: {},
+  parent: null,
+  filename: '/Users/seva.zaikov/tmp/test.js',
+  loaded: false,
+  children: [],
+  paths:
+   [ '/Users/seva.zaikov/tmp/node_modules',
+     '/Users/seva.zaikov/node_modules',
+     '/Users/node_modules',
+     '/node_modules' ] }
+{% endhighlight %}
+
+Another interesting thing about `require` is that after first require module is cached, and won't be executed again, we'll just get back cached `exports` object – so it means that you can do some logic and be sure that it will be called only once after first `require` call (this is not exactly true – you can remove module id from [require.cache](https://nodejs.org/docs/latest/api/modules.html#modules_require_cache), and then module might be reloaded, if it is required again).
 
 ## Environment Variables
 
@@ -255,7 +430,7 @@ const CONFIG = {
 
 ## Putting Everything Together
 
-In this example we will create a simple http server, which will return a file named as provided url string after `/`. In case file does not exist, we will return `404 Not Found` error, and in case user tries to cheat and use relative or nested path, we send him `403` error.
+In this example we will create a simple [http](https://nodejs.org/api/http.html#http_http) server, which will return a file named as provided url string after `/`. In case file does not exist, we will return `404 Not Found` error, and in case user tries to cheat and use relative or nested path, we send him `403` error.
 
 {% highlight js linenos=table %}
 const { createServer} = require('http');
@@ -265,16 +440,24 @@ const server = createServer((req, res) => {
   if (req.pathname.startsWith('.')) {
     res.status = 403;
     res.send('Relative paths are not allowed');
+    res.end();
   } else if (req.pathname.includes('/')) {
     res.status = 403;
     res.send('Nested paths are not allowed');
+    res.end();
   } else {
     const fileStream = fs.createReadStream(req.pathname);
 
     res.pipe(fileStream);
 
     res.on('error', (e) => {
-      if ()
+      // you can get all common codes from docs:
+      // https://nodejs.org/api/errors.html#errors_common_system_errors
+      if (e.code === 'ENOENT') {
+        res.status = 404;
+        res.send('This file does not exist.');
+        res.end();
+      }
     });
   }
 });
