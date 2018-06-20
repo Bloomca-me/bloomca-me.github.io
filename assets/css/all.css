@@ -231,6 +231,23 @@ ol {
   margin-right: 1em;
 }
 
+.textual-content .highlight-paragraph cite {
+  font-size: 16px;
+  line-height: 100%;
+  text-align: right;
+  display: block;
+}
+
+.textual-content #table-of-contents + ul {
+  margin: 0 0 1.2em 2.4em;
+}
+.textual-content #table-of-contents + ul li {
+  margin: 0;
+  line-height: 1.6em;
+}
+
+
+
 .textual-content .highlight-paragraph {
   font-style: italic;
   font-size: 32px;
