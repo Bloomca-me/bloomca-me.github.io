@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Node.js Guide for Frontend Developers
-keywords: javascript, node.js, nodejs, nodejs guide, tutorial, nodejs guide for frontend developers, nodejs introduction, node.js explanation, streams, event loop, commonjs tutorial, seva zaikov, bloomca, ES2015, ES6, async/await, modern javascript
+keywords: javascript, node.js, nodejs, nodejs guide, tutorial, nodejs guide for frontend developers, nodejs introduction, node.js explanation, node.js guide for people who know javascript, streams, event loop, commonjs tutorial, event emitter, seva zaikov, bloomca, ES2015, ES6, async/await, modern javascript
 ---
 
 > This guide is focused on frontend developers – people who know JavaScript, but are not very proficient with Node yet. I won't focus on the language here – Node.js uses V8, so it is the same interpreter as in Google Chrome, which you probably know about (however, it is possible to run on different VMs, see [node-chakracore](https://github.com/nodejs/node-chakracore)).
@@ -254,13 +254,11 @@ function (req, res) {
   const filename = req.url.slice(1);
   fs.readFile(filename, (err, data) => {
     if (err) {
-      res.status = 500;
-      res.send('Something went wrong');
-      res.end();
+      res.statusCode = 500;
+      res.end('Something went wrong');
+    } else {
+      res.end(data);
     }
-
-    res.send(data);
-    res.end();
   }); 
 }
 {% endhighlight %}
@@ -281,16 +279,14 @@ function (req, res) {
     result += data;
   });
 
-  readableStream.on('end', () => {
-    res.send(result);
-    res.end();
+  filestream.on('end', () => {
+    res.end(result);
   });
 
   // if file does not exist, error callback will be called
-  readableStream.on('error', () => {
-    res.status = 500;
-    res.send('Something went wrong');
-    res.end();
+  filestream.on('error', () => {
+    res.statusCode = 500;
+    res.end('Something went wrong');
   });
 }
 {% endhighlight %}
@@ -306,15 +302,14 @@ function (req, res) {
     res.write(chunk);
   });
 
-  readableStream.on('end', () => {
+  filestream.on('end', () => {
     res.end();
   });
 
   // if file does not exist, error callback will be called
-  readableStream.on('error', () => {
-    res.status = 500;
-    res.send('Something went wrong');
-    res.end();
+  filestream.on('error', () => {
+    res.statusCode = 500;
+    res.end('Something went wrong');
   });
 }
 {% endhighlight %}
@@ -332,10 +327,9 @@ function (req, res) {
   filestream.pipe(res);
 
   // if file does not exist, error callback will be called
-  readableStream.on('error', () => {
-    res.status = 500;
-    res.send('Something went wrong');
-    res.end();
+  filestream.on('error', () => {
+    res.statusCode = 500;
+    res.end('Something went wrong');
   });
 }
 {% endhighlight %}
@@ -429,6 +423,8 @@ As it is stated in [the twelve-factor app](https://12factor.net/), it is a good 
 export MY_VARIABLE="some variable value"
 {% endhighlight %}
 
+> Node is a cross-platform engine, and ideally your application should be possible to run on any platform (e.g. for development – you choose environment to run your code, and usually it is some Linux distributive). My examples cover only MacOS/Linux, and won't work for windows. For environment variables in windows syntax is different, you can use something like [cross-env](https://github.com/kentcdodds/cross-env), but you should keep it in mind in other cases as well.
+
 You can add this line to your [bash/zsh profile](https://top.quora.com/What-is-bash_profile-and-what-is-its-use) so it is set up in any new terminal session.
 However, you usually just run your application providing this variables specifically for this instance:
 
@@ -448,46 +444,78 @@ const CONFIG = {
 ## Putting Everything Together
 
 In this example we will create a simple [http](https://nodejs.org/api/http.html#http_http) server, which will return a file named as provided url string after `/`. In case file does not exist, we will return `404 Not Found` error, and in case user tries to cheat and use relative or nested path, we send him `403` error.
+We used some of these functions before, but did not really document them – this time it will be a heavily-documented code:
 
 {% highlight js linenos=table %}
 // we require only built-in modules, so Node.js
 // does not traverse our `node_modules` folders
 
 // https://nodejs.org/api/http.html#http_http_createserver_options_requestlistener
-const { createServer } = require('http');
-const fs = require('fs');
-const url = require('url');
+const { createServer } = require("http");
+const fs = require("fs");
+const url = require("url");
+const path = require("path");
+
+// we pass folder name with files as an environment variable
+// so we can use different folder locally
+const FOLDER_NAME = process.env.FOLDER_NAME;
+const PORT = process.env.PORT || 8080;
 
 const server = createServer((req, res) => {
+  // req.url contains full url, with querystring
+  // we ignored it before, but here we want to ensure
+  // that we get only pathname, without querystring
   // https://nodejs.org/api/http.html#http_message_url
-  const { pathname } = url.parse(req.url);
-  if (pathname.startsWith('.')) {
-    res.status = 403;
-    res.send('Relative paths are not allowed');
-    res.end();
-  } else if (pathname.includes('/')) {
-    res.status = 403;
-    res.send('Nested paths are not allowed');
-    res.end();
+  const parsedURL = url.parse(req.url);
+  // we don't need first `/` symbol
+  const pathname = parsedURL.pathname.slice(1);
+
+  // in order to return a response, we have to call `res.end()`
+  // https://nodejs.org/api/http.html#http_response_end_data_encoding_callback
+  //
+  // > The method, response.end(), MUST be called on each response.
+  // if we don't call it, connection won't close and a requester
+  // will wait for it until the timeout
+  // 
+  // by default, we return a response with [code 200](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
+  // in case something went wrong, we are supposed to return
+  // a correct status code, using `res.statusCode = ...` property:
+  // https://nodejs.org/api/http.html#http_response_statuscode
+
+  if (pathname.startsWith(".")) {
+    res.statusCode = 403;
+    res.end("Relative paths are not allowed");
+  } else if (pathname.includes("/")) {
+    res.statusCode = 403;
+    res.end("Nested paths are not allowed");
   } else {
-    const fileStream = fs.createReadStream(pathname);
+    // https://nodejs.org/en/docs/guides/working-with-different-filesystems/
+    // in order to stay cross-platform, we can't just create a path on our own
+    // we have to use the platform-specific separator as a delimiter
+    // path.join() does exactly that for us:
+    // https://nodejs.org/api/path.html#path_path_join_paths
+    const filePath = path.join(__dirname, FOLDER_NAME, pathname);
+    const fileStream = fs.createReadStream(filePath);
 
-    res.pipe(fileStream);
+    fileStream.pipe(res);
 
-    res.on('error', (e) => {
-      // you can get all common codes from docs:
+    fileStream.on("error", e => {
+      // we handle only non-existing files, but there are plently
+      // of possible error codes. you can get all common codes from docs:
       // https://nodejs.org/api/errors.html#errors_common_system_errors
-      if (e.code === 'ENOENT') {
-        res.status = 404;
-        res.send('This file does not exist.');
-        res.end();
+      if (e.code === "ENOENT") {
+        res.statusCode = 404;
+        res.end("This file does not exist.");
+      } else {
+        res.statusCode = 500;
+        res.end("Internal server error");
       }
     });
   }
 });
 
-server.listen(8080, () => {
-  console.log('application is listening at the port 8080');
+server.listen(PORT, () => {
+  console.log(`application is listening at the port ${PORT}`);
 });
 {% endhighlight %}
 
