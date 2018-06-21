@@ -17,23 +17,24 @@ keywords: javascript, node.js, nodejs, nodejs guide, tutorial, nodejs guide for 
 - [Module System](#module-system)
 - [Environment Variables](#environment-variables)
 - [Putting Everything Together](#putting-everything-together)
+- [Conclusion](#conclusion)
 
-We deal with Node.js pretty often nowadays, even if you are a frontend developer – [npm scripts](https://docs.npmjs.com/misc/scripts), webpack configuration, gulp tasks, programmatic run of [bundlers](https://webpack.js.org/api/node/) or [test runners](https://karma-runner.github.io/2.0/dev/public-api.html). Even though you don't really need deep understanding for that sort of tasks, it might be confusing sometimes, and cause you to write something in a very weird way just because of missing some key concept of Node.js. Familiarity with Node can also allow you to automate some things you do manually, feeling more confident looking into server-side code and writing more complicated scripts.
+We deal with Node.js pretty often nowadays, and even if you are a frontend developer – [npm scripts](https://docs.npmjs.com/misc/scripts), webpack configuration, gulp tasks, programmatic run of [bundlers](https://webpack.js.org/api/node/) or [test runners](https://karma-runner.github.io/2.0/dev/public-api.html). Even though you don't really need deep understanding for that sort of tasks, it might be confusing sometimes, and cause you to write something in a very weird way just because of missing some key concept of Node.js. Familiarity with Node can also allow you to automate some things you do manually, feeling more confident looking into server-side code and writing more complicated scripts.
 
 ## Node Version
 
-The most schocking difference after client-side code is the fact that you decide on your runtime, and you can be absolutely sure in supported features – you choose which version you are going to use, depending on your requirements and available servers.
+The most shocking difference after client-side code is the fact that _you_ decide on your runtime, and you can be absolutely sure in supported features – you choose which version you are going to use, depending on your requirements and available servers.
 
-Node.js has a public [release schedule](https://github.com/nodejs/Release#release-schedule), which tells us that odd versions don't have long-term support, and that current LTS (long-term support) version will be active developed until April 2019, and then maintained with critical updates until December 31, 2019. New versions are being actively developed, and they bring a lot of new features, along with security updates and performance improvements, which might be a good reason to follow current active version. However, nobody really forces you, and if you don't want to do that – there is nothing wrong to use an old version, and to avoid updates until it is a good moment for you.
+Node.js has a public [release schedule](https://github.com/nodejs/Release#release-schedule), which tells us that odd versions don't have long-term support, and that current LTS (long-term support) version will be actively developed until April 2019, and then maintained with critical updates until December 31, 2019. New versions of Node are being actively developed, and they bring a lot of new features, along with security updates and performance improvements, which might be a good reason to use current active version. However, nobody really forces you, and if you don't want to do that – there is nothing wrong to use an older version, and to avoid updates until it is a good moment for you.
 
-Node.js is used extensively in modern frontend toolchain – it is hard to imagine modern project which does not include any processing using node tools, so you might be already familiar with [nvm](https://github.com/creationix/nvm) (node version manager), which allows you to have several node versions at the project simultaneously. The reason for such a tool is that different project very often are written using different Node version, and you don't want to constantly keep them in sync, you just want to preserve environment in which they were written and tested.
+Node.js is used extensively in modern frontend toolchain – it is hard to imagine a modern project which does not include any processing using node tools, so you might be already familiar with [nvm](https://github.com/creationix/nvm) (node version manager), which allows you to have several node versions installed at the same time, choosing the correct version for each project. The reason for such a tool is that different project very often are written using different Node version, and you don't want to constantly keep them in sync, you just want to preserve environment in which they were written and tested.
 Such tools exist for many other languages, like [virtualenv](https://virtualenv.pypa.io/en/stable/) for Python, [rbenv](https://github.com/rbenv/rbenv) for Ruby and so on.
 
 ## No Babel is Needed
 
 Because you are free to choose any Node.js version, there is a big chance that you can use LTS (Long term supported) version, which is [8.11.3](https://nodejs.org/en/) at the moment of writing, which supports [almost everything](https://node.green/) – all 2015 ECMAScript spec, except for [tail recursion](https://en.wikipedia.org/wiki/Tail_call).
 
-It means that there is no need for Babel, unless you are stuck with old version of Node.js, need [JSX transformation](https://babeljs.io/docs/en/babel-plugin-transform-react-jsx), or can't live without some [bleeding edge transformation](https://github.com/tc39/proposal-pipeline-operator). In practice, it is not that crucial, so your running code is the same as you write it, without any transpiling – gift we already forgot on the client-side.
+It means that there is no need for Babel, unless you are stuck with a very old version of Node.js, need [JSX transformation](https://babeljs.io/docs/en/babel-plugin-transform-react-jsx), or can't live without some [bleeding edge transformation](https://github.com/tc39/proposal-pipeline-operator). In practice, it is not that crucial, so your running code is the same as you write it, without any transpiling – gift we already forgot on the client-side.
 
 There is also no need for webpack or browserify, and therefore we don't have a tool to reload our code – in case you develop something like a web server, you can use [nodemon](https://github.com/remy/nodemon) to reload your application after filechanges.
 
@@ -42,7 +43,7 @@ And because we don't ship this code anywhere, there is no need to minify it – 
 ## Callback Style
 
 Historically, asynchronous functions in Node.js accepted callbacks with a signature `(err, data)`, where first argument represented an error – if it was `null`, all is good, otherwise you have to handle the error.
-For example, let's read a file:
+These handlers were called after action was done and we had a response. For example, let's read a file:
 
 {% highlight js linenos=table %}
 const fs = require('fs');
@@ -59,9 +60,9 @@ fs.readFile('myFile.js', (err, file) => {
 });
 {% endhighlight %}
 
-It was discovered soon that this style makes it extremely hard to write readable and maintable code, and even created a notion [callback hell](http://callbackhell.com/). At the moment, new asynchronous primitive was introduced, [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) – it was standartized at ECMAScript 2015 (it is a global object both for browser and Node.js runtime). Later, in ECMAScript 2017 [async/await](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function) was standartized, and it became available in Node.js 7.6+.
+It was discovered soon that this style makes it extremely hard to write readable and maintainable code, and even created a notion [callback hell](http://callbackhell.com/). Later, new asynchronous primitive was introduced, [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) – it was standartized at ECMAScript 2015 (it is a global object both for browser and Node.js runtime). Recently, in ECMAScript 2017 [async/await](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function) was standartized, and it became available in Node.js 7.6+, so you can use it in the LTS version.
 
-With promises we avoid "callback hell", but now we get the problem that old code, a lot of built-in modules still use these technique. However, it is not very hard to convert them to promises – to illustrate, let's convert [fs.readFile](https://nodejs.org/api/fs.html#fs_fs_readfile_path_options_callback) to promises:
+With promises we avoid "callback hell", but now we get the problem that old code, and a lot of built-in modules still use this technique. However, it is not very hard to convert them to promises – to illustrate, let's convert [fs.readFile](https://nodejs.org/api/fs.html#fs_fs_readfile_path_options_callback) to promises:
 
 {% highlight js linenos=table %}
 const fs = require('fs');
@@ -99,29 +100,29 @@ You still can encounter a lot of oldschool Node.js code with callbacks, and it i
 
 ## Event Loop
 
-Event loop is almost the same as in the browser, but a little bit extended. However, since this topic is a little bit more advanced, I will cover it fully, not only the differences (I will highlight them though, so you know which part is Node.js-specific).
+Event loop is almost the same as in the browser, with some extensions. However, since this topic is a little bit more advanced, I will cover it fully, not only the differences (I will highlight them though, so you know which part is Node.js-specific).
 
 <p class="centred-image full-image">
   <img class="image" src="/assets/img/event_loop.jpg" />
   <em>Event loop in Node.js</em>
 </p>
 
-JavaScript is built with asynchronous behaviour in mind, and therefore very often we don't execute everything right there. Things which can be executed not in direct order:
+JavaScript is built with asynchronous behaviour in mind, and therefore very often we don't execute everything right there. Here is a list with things which can be executed not in direct order:
 - [microtasks](https://jakearchibald.com/2015/tasks-microtasks-queues-and-schedules/)
 
-For example, immediately resolved promises, like [Promise.resolve](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/resolve). It means that this code will execute in the _same_ event loop iteration, but after all synchronous code.
+For example, immediately resolved promises, like [Promise.resolve](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/resolve). It means that this code will be executed in the _same_ event loop iteration, but after all synchronous code.
 
 - [process.nextTick](https://nodejs.org/api/process.html#process_process_nexttick_callback_args)
 
-This is a Node.js specific thing, it does not exist in any browser. It behaves like a microtask, but with a priority, which means that it will be executed right after all synchronous code, even if other microtasks were introduced before – this is dangerous. Naming is unfortunate, since it is not really correct, but because of [compatibility reasons](https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/#process-nexttick-vs-setimmediate) it probably will remain the same.
+This is a Node.js specific thing, it does not exist in any browser (as well as `process` object). It behaves like a microtask, but with a priority, which means that it will be executed right after all synchronous code, even if other microtasks were introduced before – this is dangerous, and can lead to endless loops. Naming is unfortunate, since it is executed during the same event loop iteration, not on the next tick of it, but because of [compatibility reasons](https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/#process-nexttick-vs-setimmediate) it probably will remain the same.
 
 - [setImmediate](https://nodejs.org/api/timers.html#timers_setimmediate_callback_args)
 
-While it does exist in [some browsers](https://developer.mozilla.org/en-US/docs/Web/API/Window/setImmediate#Browser_compatibility), it did not reach consistent behaviour across all of them, so you should be very careful using it in the browser. It is similar to `setTimeout(0)` code, but sometimes will take precedence over it.
+While it does exist in [some browsers](https://developer.mozilla.org/en-US/docs/Web/API/Window/setImmediate#Browser_compatibility), it did not reach consistent behaviour across all of them, so you should be very careful using it in the browser. It is similar to `setTimeout(0)` code, but sometimes will take precedence over it. Naming is also not the best – we are talking about next event loop iteration, and it is not really immediate.
 
 - [setTimeout](https://nodejs.org/api/timers.html#timers_settimeout_callback_delay_args)/[setInterval](https://nodejs.org/api/timers.html#timers_setinterval_callback_delay_args)
 
-Timers behave the same way both in Node and browser. One important thing about timers is that delay we put there is not a guaranteed time after which our callback will be executed. What it means – Node.js will execute this callback after this time _as soon_ as main execution cycle finished all operations (including microtasks) _and_ there are no other timers with higher priority.
+Timers behave the same way both in Node and browser. One important thing about timers is that a delay which we provide is not a guaranteed time after which our callback will be executed. What it really means – Node.js will execute this callback after this time _as soon_ as the main execution cycle finished all operations (including microtasks) _and_ there are no other timers with higher priority.
 
 Let's take a look at the example with all mentioned things:
 
@@ -188,7 +189,7 @@ You can read more about event loop and process.nextTick in [official Node.js doc
 
 ## Event Emitters
 
-A lot of core modules in Node.js emit or receive different events. Node.js has an implementation of [EventEmitter](https://nodejs.org/api/events.html#events_class_eventemitter), which is a [publish-subscribe pattern](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern). This is a very similar to browser DOM events with a little bit different syntax, and the easiest thing we can do to understand it fully is to actually implement it on our own:
+A lot of core modules in Node.js emit or receive different events. Node.js has an implementation of [EventEmitter](https://nodejs.org/api/events.html#events_class_eventemitter), which is a [publish-subscribe pattern](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern). This is a very similar to browser DOM events with a slightly different syntax, and the easiest thing we can do to understand it is to actually implement it on our own:
 
 {% highlight js linenos=table %}
 class EventEmitter {
@@ -231,9 +232,11 @@ class EventEmitter {
 }
 {% endhighlight %}
 
-Because it is such a simple concept, it is implemented in a lot of npm packages: [1](https://www.npmjs.com/package/event-emitter), [2](https://www.npmjs.com/package/events), [3](https://www.npmjs.com/package/eventemitter3), and [many others](https://www.npmjs.com/search?q=event+emitter) – so, if you want to use the same event emitter in the browser, feel free to use them.
+> This implementation just shows the pattern itself and does not target exact functionality – please don't use it in your code!
 
 This is all the basic code we need! It allows you to subscribe to events, unsubscribe later, and emit different events. For example, [response object](https://nodejs.org/api/http.html#http_class_http_serverresponse), [request object](https://nodejs.org/api/http.html#http_class_http_incomingmessage), [stream](https://nodejs.org/api/stream.html) – they all actually extend or implement EventEmitter!
+
+Because it is such a simple concept, it is implemented in a lot of npm packages: [1](https://www.npmjs.com/package/event-emitter), [2](https://www.npmjs.com/package/events), [3](https://www.npmjs.com/package/eventemitter3), and [many others](https://www.npmjs.com/search?q=event+emitter) – so, if you want to use the same event emitter in the browser, feel free to use them.
 
 ## Streams
 
@@ -244,30 +247,32 @@ This is all the basic code we need! It allows you to subscribe to events, unsubs
   </cite>
 </blockquote>
 
-Streams allow you to process data in chunks, not just as a whole object. To understand why do we need them, let me show you a simple example – let's say we want to return to a user a requested file of arbitrary size. Our code might look like this:
+Streams allow you to process data in chunks, not just as a result of the full operation (like reading a file). To understand why do we need them, let me show you a simple example – let's say we want to return to a user a requested file of arbitrary size. Our code might look like this:
 
 {% highlight js linenos=table %}
 function (req, res) {
-  const filename = req.query;
+  const filename = req.url.slice(1);
   fs.readFile(filename, (err, data) => {
     if (err) {
       res.status = 500;
       res.send('Something went wrong');
+      res.end();
     }
 
     res.send(data);
+    res.end();
   }); 
 }
 {% endhighlight %}
 
-This code will work, especially locally, but it _might_ fail. See the issue?
-We can have problems here in case file is too big – when we read a file, we put everything into memory, and if we don't have enough resources, this won't work. This also won't work in case we have a lot of concurrent requests – we have to keep `data` object in memory until we sent everything.
+This code will work, especially on our local dev machine, but it _might_ fail – do you see the issue?
+We can have problems here in case file is too big – when we read the file, we put everything into memory, and if we don't have enough resources, this won't work. This also won't work in case we have a lot of concurrent requests – we have to keep `data` object in memory until we sent everything.
 
 However, we don't really need this file at all – we just return it from file system, and we don't look inside the content by ourselves, so we can read some part, return it immediately, free our memory, and repeat the whole thing again until we are done. This is a description of streams in a nutshell – we have a mechanism to receive data in chunks, and _we_ decide what to do with this data. For example, we can do exactly the same:
 
 {% highlight js linenos=table %}
 function (req, res) {
-  const filename = req.query;
+  const filename = req.url.slice(1);
   const filestream = fs.createReadStream(filename, { encoding: 'utf-8' });
 
   let result = '';
@@ -278,12 +283,14 @@ function (req, res) {
 
   readableStream.on('end', () => {
     res.send(result);
+    res.end();
   });
 
   // if file does not exist, error callback will be called
   readableStream.on('error', () => {
     res.status = 500;
     res.send('Something went wrong');
+    res.end();
   });
 }
 {% endhighlight %}
@@ -292,7 +299,7 @@ Here we create a stream to read from the file – this stream implements [EventE
 
 {% highlight js linenos=table %}
 function (req, res) {
-  const filename = req.query;
+  const filename = req.url.slice(1);
   const filestream = fs.createReadStream(filename, { encoding: 'utf-8' });
 
   filestream.on('data', chunk => {
@@ -307,18 +314,19 @@ function (req, res) {
   readableStream.on('error', () => {
     res.status = 500;
     res.send('Something went wrong');
+    res.end();
   });
 }
 {% endhighlight %}
 
-> Response object implements a [writable stream](https://nodejs.org/api/stream.html#stream_class_stream_writable), and [fs.createReadStream](https://nodejs.org/api/fs.html#fs_fs_createreadstream_path_options) creates a [readable stream](https://nodejs.org/api/stream.html#stream_readable_streams), and there are also [duplex and transform streams](https://nodejs.org/api/stream.html#stream_duplex_and_transform_streams). Difference between them and how they exactly work is out of the scope of this tutorial, but it is good to know about their existence
+> Response object implements a [writable stream](https://nodejs.org/api/stream.html#stream_class_stream_writable), and [fs.createReadStream](https://nodejs.org/api/fs.html#fs_fs_createreadstream_path_options) creates a [readable stream](https://nodejs.org/api/stream.html#stream_readable_streams), and there are also [duplex and transform streams](https://nodejs.org/api/stream.html#stream_duplex_and_transform_streams). Difference between them and how they exactly work is out of the scope of this tutorial, but it is good to know about their existence.
 
 Now we don't need `result` variable anymore, we just write read chunks into response immediately, and we don't keep it in our memory! It means that we can read even big files, and we don't have to worry about a lot of parallel requests – since we don't keep files in our memory, we won't get out of it.
 However, there is one problem – in our solution we read from one stream (filesystem reading from a file) and write it into another (network request), and these two things have [different latencies](https://gist.github.com/jboner/2841832). By different I mean _really_ different, and after some time our response stream will be overwhelmed, since it is much slower. This problem is a description of [backpressure](https://nodejs.org/en/docs/guides/backpressuring-in-streams/), and Node has a solution for it: each readable stream has a [pipe method](https://nodejs.org/api/stream.html#stream_readable_pipe_destination_options), which redirects all data into given stream respecting its load: if it is busy, it will [pause](https://nodejs.org/api/stream.html#stream_readable_pause) original stream, and [resume](https://nodejs.org/api/stream.html#stream_readable_resume) it. Using this method, we can simplify our code to:
 
 {% highlight js linenos=table %}
 function (req, res) {
-  const filename = req.query;
+  const filename = req.url.slice(1);
   const filestream = fs.createReadStream(filename, { encoding: 'utf-8' });
 
   filestream.pipe(res);
@@ -327,19 +335,20 @@ function (req, res) {
   readableStream.on('error', () => {
     res.status = 500;
     res.send('Something went wrong');
+    res.end();
   });
 }
 {% endhighlight %}
 
-> Streams changed several times during Node's history, so be extra careful while reading old manuals, and try to compare with official documentation!
+> Streams changed several times during Node's history, so be extra careful while reading old manuals, and always check with official documentation!
 
 ## Module System
 
-Node.js uses [commonjs modules](https://nodejs.org/docs/latest/api/modules.html). Probably you already used it – every time you use `require` some module inside your webpack configuration, you actually use commonjs modules; every time you declare `module.exports` you use it as well – however, you might also seen something like `exports.some = {}`, without `module`, and in this section we'll see why is it so.
+Node.js uses [commonjs modules](https://nodejs.org/docs/latest/api/modules.html). Probably you already used them – every time you use `require` to get some module inside your webpack configuration, you actually use commonjs modules; every time you declare `module.exports` you use it as well – however, you might also saw something like `exports.some = {}`, without `module`, and in this section we'll see how exactly it works.
 
-First of all, I'll talk about commonjs modules, with regular `.js` extensions, not about `.esm` (ECMAScript modules), which allow you to use `import/export` syntax. Also, what is important to understand, webpack and browserify (and other bundling tools) use their own require, so please don't be confused – we won't touch them here, just be aware that it is slightly different.
+First of all, I'll talk about commonjs modules, with regular `.js` extensions, not about `.esm`/`.mjs` files ([ECMAScript modules](https://nodejs.org/api/esm.html)), which allow you to use `import/export` syntax. Also, what is important to understand, webpack and browserify (and other bundling tools) use their own `require` function, so please don't be confused – we won't touch them here, just be aware that it is slightly different (even though it behaves in a very similar fashion).
 
-So, from where do we get these "global" objects like `module`, `require` and `exports`? Actually, Node.js runtime adds them – instead of just executing given javascript file, it [actually wraps](https://nodejs.org/api/modules.html#modules_the_module_wrapper) it in the function with all these variables:
+So, where do we actually get these "global" objects like `module`, `require` and `exports`? Actually, Node.js runtime adds them – instead of just executing given javascript file, it [actually wraps](https://nodejs.org/api/modules.html#modules_the_module_wrapper) it in the function with all these variables:
 
 {% highlight js linenos=table %}
 function (exports, require, module, __filename, __dirname) {
@@ -355,7 +364,11 @@ node -e "console.log(require('module').wrapper)"
 
 These are variables injected into your module and available as "global" ones, even though they are not really global. I highly recommend you to look into them, especially into `module` variable – you can just call `console.log(module)` in a javascript file: try to compare results when you print from the "main" file, and then from a required one.
 
+<br />
+
 ----
+
+<br />
 
 Next, let's look into `exports` object – we will have a small example showing some caveats related to it:
 
@@ -373,7 +386,11 @@ Example above might get you puzzled – why is it so? The answer is in the natur
 module.exports === exports; // true
 {% endhighlight %}
 
+<br />
+
 ----
+
+<br />
 
 The last part is `require` – it is a function which takes a module name and returns the `exports` object of this module. How does it exactly resolve a module? There is a pretty straightforward rule:
 
@@ -384,7 +401,7 @@ The last part is `require` – it is a function which takes a module name and re
   - in the folder where we run script
   - one level above, until we reach `/node_modules`
 
-There are other libraries, and you can also provide your path to look in by specifying variable [NODE_PATH](https://nodejs.org/api/modules.html#modules_loading_from_the_global_folders), which might be useful. If you want to see exact order in which `node_modules` are being resolved, just print `module` object in your script and look for `paths` variable – for me it prints the following:
+There are also some other places, which are mostly for compatibility, and you can also provide your path to look in by specifying variable [NODE_PATH](https://nodejs.org/api/modules.html#modules_loading_from_the_global_folders), which might be useful. If you want to see exact order in which `node_modules` are being resolved, just print `module` object in your script and look for `paths` variable – for me it prints the following:
 
 {% highlight sh linenos=table %}
 ➜ tmp node test.js
@@ -402,7 +419,7 @@ Module {
      '/node_modules' ] }
 {% endhighlight %}
 
-Another interesting thing about `require` is that after first require module is cached, and won't be executed again, we'll just get back cached `exports` object – so it means that you can do some logic and be sure that it will be called only once after first `require` call (this is not exactly true – you can remove module id from [require.cache](https://nodejs.org/docs/latest/api/modules.html#modules_require_cache), and then module might be reloaded, if it is required again).
+Another interesting thing about `require` is that after first `require` call module is cached, and won't be executed again, we'll just get back cached `exports` object – so it means that you can do some logic and be sure that it will be called only once after first `require` call (this is not exactly true – you can remove module id from [require.cache](https://nodejs.org/docs/latest/api/modules.html#modules_require_cache), and then module might be reloaded, if it is required again).
 
 ## Environment Variables
 
@@ -433,20 +450,27 @@ const CONFIG = {
 In this example we will create a simple [http](https://nodejs.org/api/http.html#http_http) server, which will return a file named as provided url string after `/`. In case file does not exist, we will return `404 Not Found` error, and in case user tries to cheat and use relative or nested path, we send him `403` error.
 
 {% highlight js linenos=table %}
-const { createServer} = require('http');
+// we require only built-in modules, so Node.js
+// does not traverse our `node_modules` folders
+
+// https://nodejs.org/api/http.html#http_http_createserver_options_requestlistener
+const { createServer } = require('http');
 const fs = require('fs');
+const url = require('url');
 
 const server = createServer((req, res) => {
-  if (req.pathname.startsWith('.')) {
+  // https://nodejs.org/api/http.html#http_message_url
+  const { pathname } = url.parse(req.url);
+  if (pathname.startsWith('.')) {
     res.status = 403;
     res.send('Relative paths are not allowed');
     res.end();
-  } else if (req.pathname.includes('/')) {
+  } else if (pathname.includes('/')) {
     res.status = 403;
     res.send('Nested paths are not allowed');
     res.end();
   } else {
-    const fileStream = fs.createReadStream(req.pathname);
+    const fileStream = fs.createReadStream(pathname);
 
     res.pipe(fileStream);
 
@@ -463,12 +487,12 @@ const server = createServer((req, res) => {
 });
 
 server.listen(8080, () => {
-  console.log('application is listening at port 8080');
+  console.log('application is listening at the port 8080');
 });
 {% endhighlight %}
 
 ## Conclusion
 
-In this guide we covered a lot of fundamental Node.js principles. We did not dive into specific APIs, and we definitely missed some parts, but this guide should be a good starting point to feel confident while editing existing or creating new scripts – you are now able to understand errors, which interfaces built-in modules use, and what to expect from typical Node.js objects.
+In this guide we covered a lot of fundamental Node.js principles. We did not dive into specific APIs, and we definitely missed some parts, but this guide should be a good starting point to feel confident while reading API, editing existing or creating new scripts – you are now able to understand errors, which interfaces built-in modules use, and what to expect from typical Node.js objects and interfaces.
 
-Next time we'll cover web servers using Node.js in depth, how to write a CLI application, and how to use Node.js for small scripts. Stay tuned!
+Next time we'll cover web servers using Node.js in depth, Node.js [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop), how to write a CLI application, and how to use Node.js for small scripts – you can subscribe to get notifications about these new articles.
