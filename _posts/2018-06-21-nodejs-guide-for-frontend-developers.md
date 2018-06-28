@@ -276,7 +276,7 @@ function (req, res) {
   let result = '';
 
   filestream.on('data', chunk => {
-    result += data;
+    result += chunk;
   });
 
   filestream.on('end', () => {
