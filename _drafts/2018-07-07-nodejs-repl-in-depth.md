@@ -4,15 +4,15 @@ title: Node.js REPL in Depth
 keywords: node.js, node, REPL, node.js REPL, node.js REPL tutorial, node.js REPL in depth, javascript, seva zaikov, bloomca
 ---
 
-[REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop) stands for read-eval-print-loop, or just an interactive session (usually in your terminal), where you can enter some expression and immediately evaluate it, seeing the result. After evaluating the whole flow repeats, and it works until you exit the process. So, `R` stands for reading your command, `E` stands for evaluating it, `P` stands for printing result of execution, and `L` means to run the whole process again, "in the loop".
+[REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop) stands for read-eval-print-loop, or just an interactive session (usually in your terminal), where you can enter some expression and immediately evaluate it, seeing the result. After evaluating, the whole flow repeats, and it works until you exit the process. So, `R` stands for reading your command, `E` stands for evaluating it, `P` stands for printing the result of the execution, and `L` means to run the whole process again, "in the loop".
 
-In order to run Node.js REPL, you need to run `node` command without any arguments:
+In order to run Node.js REPL, you need to run the `node` command without any arguments:
 
 {% highlight sh linenos=table %}
 > node
 {% endhighlight %}
 
-REPL session is similar to console window in the browser – you can create and store variables, declare functions, require modules and installed dependencies (check [module object](https://blog.bloomca.me/2018/06/21/nodejs-guide-for-frontend-developers.html#module-system during your REPL session)). However, one important difference between executing a file and working in a REPL session is that REPL session is not wrapped into the function, so you don't have [__dirname](https://nodejs.org/docs/latest/api/modules.html#modules_dirname) and [__filename](https://nodejs.org/docs/latest/api/modules.html#modules_filename) variables. So, you can require any files as you would do in any existing commonjs file. To illustrate, let's create a new file where we export some string, and require it from the REPL:
+REPL session is similar to the console window in the browser – you can create and store variables, declare functions, require modules and installed dependencies (check [module object](https://blog.bloomca.me/2018/06/21/nodejs-guide-for-frontend-developers.html#module-system during your REPL session)). However, one important difference between executing a file and working in a REPL session is that a REPL session is not wrapped into the function, so you don't have [__dirname](https://nodejs.org/docs/latest/api/modules.html#modules_dirname) and [__filename](https://nodejs.org/docs/latest/api/modules.html#modules_filename) variables. So, you can require any files as you would do in any existing commonjs file. To illustrate, let's create a new file where we export some string, and require it from the REPL:
 
 {% highlight js linenos=table %}
 > touch example.js
@@ -24,7 +24,7 @@ REPL session is similar to console window in the browser – you can create and 
 'some text'
 {% endhighlight %}
 
-I did not assign the result of requirement expression, but I was able to access it anyway! I got last expression's result by using [underscore variable](https://nodejs.org/api/repl.html#repl_assignment_of_the_underscore_variable) – Node.js REPL automatically assigns last expression's result to `_` variable. Interesting, that despite being a popular choice for [lodash](https://lodash.com/), you can't assign to this variable. It will save the value, but after the next expression it will be different:
+I did not assign the result of the `require` expression, but I was able to access it anyway! I got the last expression's result by using [underscore variable](https://nodejs.org/api/repl.html#repl_assignment_of_the_underscore_variable) – Node.js REPL automatically assigns the last expression's result to `_` variable. It is interesting, that despite being a popular choice for [lodash](https://lodash.com/), you can't assign to this variable. It will save the value, but after the next expression it will be different:
 
 {% highlight js linenos=table %}
 > node
@@ -41,7 +41,7 @@ Expression assignment to _ now disabled.
 
 ## Special commands
 
-Node.js REPL has special commands, even though I feel they are not so widely known. At first, let's look at the multiline command. By default, every line is evaluated after you type it and hit "Enter": there is no way in JavaScript to tell when we need to continue or can evaluate our code (like it is done in [Python REPL](https://docs.python.org/3/tutorial/interpreter.html#interactive-mode), for example). Because of that it is challenging to write functions, since it is very unreadable and very error-prone to type all in one line. However, there is an [.editor](https://nodejs.org/api/repl.html#repl_commands_and_special_keys) command, which allows you to type as many lines as you need:
+Node.js REPL has special commands, even though I feel they are not so widely known. First, let's look at the multiline command. By default, every line is evaluated after you type it and hit "Enter": there is no way in JavaScript to tell when we need to continue or can evaluate our code (like it is done in [Python REPL](https://docs.python.org/3/tutorial/interpreter.html#interactive-mode), for example). Because of that it is challenging to write functions, since it is very unreadable and very error-prone to type all in one line. However, there is an [.editor](https://nodejs.org/api/repl.html#repl_commands_and_special_keys) command, which allows you to type as many lines as you need:
 
 {% highlight js linenos=table %}
 > node
@@ -73,7 +73,7 @@ Other special commands (from the [official docs](https://nodejs.org/api/repl.htm
 
 ## Automatically imported modules
 
-If you tap the TAB key twice, it will give you all possible autocompletions (also, if you already typed something, and there is only one option, it will do it automatically). We can use it to check what is available globally (keep in mind that everything you declare in your session, also available there).
+If you hit the TAB key twice, it will give you all possible autocompletions (also, if you already typed something, and there is only one option, it will do it automatically). We can use it to check what is available globally (keep in mind that everything you declare in your session, is also available there).
 
 {% highlight sh linenos=table %}
 > node
@@ -100,7 +100,7 @@ __defineGetter__              __defineSetter__              __lookupGetter__    
 isPrototypeOf                 propertyIsEnumerable          toLocaleString                toString                      valueOf
 {% endhighlight %}
 
-What is important here, aside from expected global objects and methods, that you automatically have acess to [core Node.js modules](https://nodejs.org/api/repl.html#repl_accessing_core_node_js_modules), like [fs](https://nodejs.org/dist/latest-v10.x/docs/api/fs.html), [http](https://nodejs.org/dist/latest-v10.x/docs/api/http.html), [os](https://nodejs.org/dist/latest-v10.x/docs/api/os.html), [path](https://nodejs.org/dist/latest-v10.x/docs/api/path.html) and so on. While it is not a big deal, it might be a very convienent thing, especially when you are trying out some ideas in your REPL.
+What is important here, aside from the expected global objects and methods, is that you automatically have access to [core Node.js modules](https://nodejs.org/api/repl.html#repl_accessing_core_node_js_modules), like [fs](https://nodejs.org/dist/latest-v10.x/docs/api/fs.html), [http](https://nodejs.org/dist/latest-v10.x/docs/api/http.html), [os](https://nodejs.org/dist/latest-v10.x/docs/api/os.html), [path](https://nodejs.org/dist/latest-v10.x/docs/api/path.html) and so on. While it is not a big deal, it might be a very convienent thing, especially when you are trying out some ideas in your REPL.
 
 You can use these imported modules in a special way of running Node.js: if you provide a `-e` argument with a following string, containing JS code, it will be evaluated immediately:
 
@@ -113,7 +113,7 @@ Keep in mind, that in this mode node does not print anything in the console by d
 
 ## Using repl module
 
-You can import [repl](https://nodejs.org/api/repl.html#repl_repl) module directly and use it within your Node.js application. All what Node.js does by default can be done using [repl.start](https://nodejs.org/api/repl.html#repl_repl_start_options) method. It will use all usual defaults, standard input and output streams. To run an interactive shell with our own prompt symbol, we have to create a small javascript file:
+You can import the [repl](https://nodejs.org/api/repl.html#repl_repl) module directly and use it within your Node.js application. All Node.js does by default can be done using the [repl.start](https://nodejs.org/api/repl.html#repl_repl_start_options) method. It will use all the usual defaults, standard input and output streams. To run an interactive shell with our own prompt symbol, we have to create a small javascript file:
 
 {% highlight js linenos=table %}
 const repl = require('repl');
