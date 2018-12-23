@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Node.js Web Server Without Dependencies
+title: "Node.js Fundamentals: Web Server Without Dependencies"
 keywords: node.js, node.js web server, node.js http, node.js tutorial, web server without dependencies, web servers explained, node.js from scratch, bloomca, seva zaikov
 ---
 
