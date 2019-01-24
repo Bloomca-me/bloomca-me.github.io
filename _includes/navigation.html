@@ -1,19 +1,19 @@
 <div class="navigation">
-  {% if page.layout == 'post' or page.url == '/' %}
+  {% if page.url == '/' %}
     <a href="/" class="active">
   {% else %}
     <a href="/">
   {% endif %}
-    articles
-  </a>
-  <!-- {% if page.url == '/projects' or page.url == '/projects.html' %}
-  <a href="/projects" class="active">
-  {% else %}
-    <a href="/projects">
-  {% endif %}
     projects
   </a>
-  {% if page.url == '/moocs' or page.url == '/moocs.html' %}
+  {% if page.layout == 'post' or page.url == '/posts' or page.url == '/posts.html' %}
+    <a href="/posts" class="active">
+  {% else %}
+    <a href="/posts">
+  {% endif %}
+    articles
+  </a>
+  <!-- {% if page.url == '/moocs' or page.url == '/moocs.html' %}
   <a href="/moocs" class="active">
   {% else %}
     <a href="/moocs">
